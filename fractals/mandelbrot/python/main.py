@@ -17,20 +17,20 @@ screen = pygame.display.set_mode((DISPLAY_WIDTH, DISPLAY_HEIGHT))
 screen.fill((0,0,0))
 
 # Animate
-# curr_iter = 1
-# iter_inc = 1
-# max_iter = 35
+curr_iter = 1
+iter_inc = 1
+max_iter = 35
 
 # Detailed
-curr_iter = 50
-iter_inc = 5
-max_iter = 50
+# curr_iter = 50
+# iter_inc = 5
+# max_iter = 50
 
 # m = Mandlebrot(-2, 1, -1, 1)
 # m = Mandlebrot(-2,1,-1.25,1.25)
 m = Mandlebrot(-1,0,-0.75,0.75)
 
-Color.set_pallete(Color.BW)
+Color.set_pallete(Color.RAINBOW)
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -40,7 +40,7 @@ while True:
         curr_iter += iter_inc
 
         m.compute(curr_iter, screen)
-        
+
         # pygame.draw.rect(screen, Color.RED, pygame.Rect((DISPLAY_WIDTH/2)-5, (DISPLAY_HEIGHT/2)-5, 10, 10))
         pygame.draw.line(screen, Color.RED, (DISPLAY_WIDTH/2,DISPLAY_HEIGHT/2), (DISPLAY_WIDTH/2,DISPLAY_HEIGHT/2))
 
