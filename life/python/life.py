@@ -149,12 +149,12 @@ def compute_generation(old_board, new_board):
 # -----------------------------------------------------------------------------
 
 ALIVE = "*"
-DEAD = "."
+DEAD = " "
 
 GEN_COUNT = 75
 
-WIDTH=15
-HEIGHT=25
+WIDTH=32
+HEIGHT=32
 boards = (
     create_board(WIDTH, HEIGHT, fill=DEAD),
     create_board(WIDTH, HEIGHT, fill=DEAD)
@@ -162,11 +162,10 @@ boards = (
 curr_board = boards[0]
 new_board = boards[1]
 
-# seed_board(curr_board, percent=50, marker=ALIVE)
+seed_board(curr_board, percent=75, marker=ALIVE)
 # seed_blinker(curr_board, 1, 2)
-seed_from_bitmap(curr_board, CONWAY)
-
-display(curr_board)
+# seed_from_bitmap(curr_board, CONWAY)
+# display(curr_board)
 
 for gen in range(GEN_COUNT):
     print("\033c\033[3J", end='')
