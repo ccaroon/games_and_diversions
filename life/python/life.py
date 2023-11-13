@@ -29,7 +29,7 @@ parser.add_argument("--generations", "-g",
     type=int, default=50, help="Number of generations")
 
 parser.add_argument("--delay", "-d",
-    type=float, default=0.5, help="Delay between generations")
+    type=float, default=0.25, help="Delay between generations")
 
 args = parser.parse_args()
 
