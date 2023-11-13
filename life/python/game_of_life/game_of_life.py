@@ -2,7 +2,10 @@ import copy
 import time
 import random
 
+import game_of_life.patterns as gol_patterns
+
 class GameOfLife:
+    """ Conway's Game of Life Simulator """
 
     NEIGHBOR_OFFSETS = (
         (-1,-1),(+0,-1),(+1,-1),
@@ -27,9 +30,22 @@ class GameOfLife:
             "standby": self.__board1
         }
 
-        self.__random_seed(self.__boards["active"], percent=50)
-        self.__display()
+        pattern_name = kwargs.get("pattern")
+        pattern = gol_patterns.PATTERNS.get(pattern_name)
+        if pattern:            
+            self.__seed_from_pattern(
+                self.__boards["active"], 
+                pattern,
+                center=True
+            )
+        else:
+            self.__seed_randomly(self.__boards["active"], percent=50)
 
+    # NOTE: 
+    # x,y indexes will need to be reversed when indexing boards created 
+    # this way.
+    # I.e. y == row, x == col
+    # Have to index the ROW first, then the COL -> board[y][x]
     def __create_board(self):
         row = [self.__dead] * self.__width
         board = []
@@ -53,14 +69,28 @@ class GameOfLife:
         # Display generation count
         print(f"Generation: {self.__generation}")
 
-    # def __seed_from_bitmap(bitmap):
-    #     width = board_data["width"]
-    #     for (idx, state) in enumerate(bitmap):
-    #         x = idx % width
-    #         y = idx // width
-    #         board[y][x] = ALIVE if state else DEAD
+    def __seed_from_pattern(self, board, pattern, offset:tuple=(0,0), center=False):
+        pat_width = pattern["width"]
+        pat_height = pattern["height"]
 
-    def __random_seed(self, board, percent=50):
+        if pat_width > self.__width or pat_height > self.__height:
+            raise ValueError(f"Board size to small for pattern. Min Size: ({pat_width}x{pat_height})")
+
+        # Compute offset to center pattern on board
+        if center:
+            off_x = (self.__width // 2) - (pat_width // 2)
+            off_y = (self.__height // 2) - (pat_height // 2)
+        else:
+            off_x = offset[0]
+            off_y = offset[1]
+
+        bitmap = pattern["bitmap"]
+        for (idx, state) in enumerate(bitmap):
+            x = idx % pat_width
+            y = idx // pat_width
+            board[y+off_y][x+off_x] = self.__alive if state else self.__dead
+
+    def __seed_randomly(self, board, percent=50):
         width = self.__width
         height = self.__height
         count = int(width * height * (percent/100))
@@ -129,6 +159,7 @@ class GameOfLife:
             self.__boards["standby"] = self.__board0
 
     def compute_generation(self):
+        """ Compute the Next Generation """
         old_board = self.__boards["active"]
         new_board = self.__boards["standby"]
         width = self.__width
@@ -140,12 +171,13 @@ class GameOfLife:
 
         self.__generation += 1
         self.__update_boards()
-        self.__display()
 
     def run(self, delay=0.5):
+        """ Run the Simulation """
         for _ in range(self.__max_gens):
-            self.compute_generation()
+            self.__display()
             time.sleep(delay)
+            self.compute_generation()
 
 
 

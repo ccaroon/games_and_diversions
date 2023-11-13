@@ -22,10 +22,13 @@ parser.add_argument("--alive",
 parser.add_argument("--dead",
     type=str, default=" ", help="Dead cell character")
 
-parser.add_argument("--generations", "-g", 
-    type=int, default=25, help="Number of generations")
+parser.add_argument("--pattern",
+    type=str, default=None, help="Seed pattern")
 
-parser.add_argument("--delay", "-d", 
+parser.add_argument("--generations", "-g", 
+    type=int, default=50, help="Number of generations")
+
+parser.add_argument("--delay", "-d",
     type=float, default=0.5, help="Delay between generations")
 
 args = parser.parse_args()
@@ -34,6 +37,7 @@ args = parser.parse_args()
 game = GameOfLife(
     args.width, args.height, 
     alive=args.alive, dead=args.dead,
+    pattern=args.pattern,
     max_gens=args.generations
 )
 game.run(delay=args.delay)
