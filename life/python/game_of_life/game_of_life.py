@@ -1,4 +1,5 @@
 import copy
+import curses
 import time
 import random
 
@@ -7,21 +8,42 @@ import game_of_life.patterns as gol_patterns
 class GameOfLife:
     """ Conway's Game of Life Simulator """
 
+    COLOR_CELL = 1
+    COLOR_BLACK_GREEN = 2
+
     NEIGHBOR_OFFSETS = (
         (-1,-1),(+0,-1),(+1,-1),
         (-1,+0),        (+1,+0),
         (-1,+1),(+0,+1),(+1,+1)
     )
         
-    def __init__(self, width, height, **kwargs):
+    def __init__(self, stdscr, width, height, **kwargs):
+        curses.init_pair(self.COLOR_CELL, 
+            curses.COLOR_GREEN, curses.COLOR_BLACK)
+        curses.init_pair(self.COLOR_BLACK_GREEN,
+            curses.COLOR_BLACK, curses.COLOR_GREEN)
+        
+        self.__screen = stdscr
+
         self.__width = width
+        if self.__width == -1:
+            self.__width = curses.COLS // 2
+        
         self.__height = height
+        if self.__height == -1:
+            self.__height = curses.LINES-1
+
+        # COLS // 2 b/c a ' ' is printed between chars
+        if self.__height > curses.LINES or self.__width > curses.COLS // 2:
+            raise ValueError(f"Screen too small: Max Width: {curses.COLS // 2} | Max Height: {curses.LINES-1}")
 
         self.__alive = kwargs.get("alive", "*")
         self.__dead = kwargs.get("dead", " ")
 
         self.__generation = 0
         self.__max_gens = kwargs.get("max_gens", 100)
+
+        self.__delay = kwargs.get("delay", 0.25)
 
         self.__board0 = self.__create_board()
         self.__board1 = self.__create_board()
@@ -53,6 +75,22 @@ class GameOfLife:
             board.append(copy.deepcopy(row))
         return board
 
+    def __display2(self):
+        """ Display ACTIVE board w/ Curses """
+        board = self.__boards["active"]
+        # Display the board
+        for y in range(self.__height):
+            line = "  ".join(board[y])
+            self.__screen.addstr(y, 0, line, curses.color_pair(self.COLOR_CELL))
+
+        # Display generation count
+        self.__screen.addstr(
+            self.__height, 0, 
+            f"|[{self.__width}]x[{self.__height}]|Generation: {self.__generation}|",
+            curses.color_pair(self.COLOR_BLACK_GREEN)
+        )
+        self.__screen.refresh()
+
     def __display(self):
         """ Display the ACTIVE board """
         board = self.__boards["active"]
@@ -62,9 +100,9 @@ class GameOfLife:
         
         # Display the board
         for y in range(self.__height):
-            for x in range(self.__width):
-                print(board[y][x], " ", end="")
-            print()
+            line = "  ".join(board[y])
+            print(line)
+        print()
 
         # Display generation count
         print(f"Generation: {self.__generation}")
@@ -78,7 +116,8 @@ class GameOfLife:
 
         # Compute offset to center pattern on board
         if center:
-            off_x = (self.__width // 2) - (pat_width // 2)
+            # // 4 b/c cells are printed with a ' ' between them
+            off_x = (self.__width // 4) - (pat_width // 4)
             off_y = (self.__height // 2) - (pat_height // 2)
         else:
             off_x = offset[0]
@@ -172,14 +211,13 @@ class GameOfLife:
         self.__generation += 1
         self.__update_boards()
 
-    def run(self, delay=0.5):
+    def run(self):
         """ Run the Simulation """
         for _ in range(self.__max_gens):
-            self.__display()
-            time.sleep(delay)
+            # self.__display()
+            self.__display2()
+            time.sleep(self.__delay)
             self.compute_generation()
-
-
 
 
 

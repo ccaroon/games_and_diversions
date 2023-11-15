@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import argparse
+import curses
 
 from game_of_life.game_of_life import GameOfLife
 
@@ -33,11 +34,18 @@ parser.add_argument("--delay", "-d",
 
 args = parser.parse_args()
 
-# Create and Run
-game = GameOfLife(
-    args.width, args.height, 
-    alive=args.alive, dead=args.dead,
-    pattern=args.pattern,
-    max_gens=args.generations
-)
-game.run(delay=args.delay)
+def main(stdscr, args):
+    # Create and Run
+    game = GameOfLife(
+        stdscr,
+        args.width, args.height,
+        alive=args.alive, dead=args.dead,
+        pattern=args.pattern,
+        max_gens=args.generations,
+        delay=args.delay
+    )
+    game.run()
+    stdscr.addstr("|--Any Key to Exit--", curses.A_REVERSE)
+    stdscr.getch()
+
+curses.wrapper(main, args)

@@ -87,6 +87,16 @@ __R_PENTOMINO = {
     ]
 }
 
+__CNC_BOX = {
+    "width": 3,
+    "height": 3,
+    "bitmap": [
+        1,1,1,
+        1,0,1,
+        1,1,1,
+    ]
+}
+
 PATTERNS = {
     "acorn": __ACORN,
     "blinker": __BLINKER,
@@ -94,5 +104,6 @@ PATTERNS = {
     "conway": __CONWAY,
     "glider": __GLIDER,
     "pulsar": __PULSAR,
-    "r-pentomino": __R_PENTOMINO
+    "r-pentomino": __R_PENTOMINO,
+    "cnc-box": __CNC_BOX
 }
