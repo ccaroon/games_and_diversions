@@ -26,6 +26,9 @@ parser.add_argument("--dead",
 parser.add_argument("--pattern",
     type=str, default=None, help="Seed pattern")
 
+parser.add_argument("--seed-percent", "-p", 
+    type=int, default=50, help="Percentage of board to seed with live cells when randomly seeding.")
+
 parser.add_argument("--generations", "-g", 
     type=int, default=50, help="Number of generations")
 
@@ -41,6 +44,7 @@ def main(stdscr, args):
         args.width, args.height,
         alive=args.alive, dead=args.dead,
         pattern=args.pattern,
+        seed_percent=args.seed_percent,
         max_gens=args.generations,
         delay=args.delay
     )

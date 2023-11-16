@@ -61,7 +61,8 @@ class GameOfLife:
                 center=True
             )
         else:
-            self.__seed_randomly(self.__boards["active"], percent=50)
+            seed_percent = kwargs.get("seed_percent", 50)
+            self.__seed_randomly(self.__boards["active"], percent=seed_percent)
 
     # NOTE: 
     # x,y indexes will need to be reversed when indexing boards created 
