@@ -26,14 +26,17 @@ parser.add_argument("--dead",
 parser.add_argument("--pattern",
     type=str, default=None, help="Seed pattern")
 
-parser.add_argument("--seed-percent", "-p", 
+parser.add_argument("--seed-percent", "-p",
     type=int, default=50, help="Percentage of board to seed with live cells when randomly seeding.")
 
-parser.add_argument("--generations", "-g", 
+parser.add_argument("--generations", "-g",
     type=int, default=50, help="Number of generations")
 
 parser.add_argument("--delay", "-d",
     type=float, default=0.25, help="Delay between generations")
+
+parser.add_argument("--wrap", "-w",
+    action='store_true', help="Wrap edges instead of clipping")
 
 args = parser.parse_args()
 
@@ -46,7 +49,8 @@ def main(stdscr, args):
         pattern=args.pattern,
         seed_percent=args.seed_percent,
         max_gens=args.generations,
-        delay=args.delay
+        delay=args.delay,
+        wrap_edges=args.wrap
     )
     game.run()
     stdscr.addstr("|--Any Key to Exit--", curses.A_REVERSE)

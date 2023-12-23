@@ -39,9 +39,9 @@ __BLINKER = {
     "width": 3,
     "height": 3,
     "bitmap": [
-        0,0,0,
-        1,1,1,
-        0,0,0
+        0,1,0,
+        0,1,0,
+        0,1,0
     ]
 }
 
@@ -97,6 +97,23 @@ __CNC_BOX = {
     ]
 }
 
+__WRAP_TEST = {
+    "width": 10,
+    "height": 10,
+    "bitmap": [
+        0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,1,0,0,0,
+        1,0,0,0,0,0,1,0,0,0,
+        1,0,0,0,0,0,1,0,0,0,
+        1,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,
+    ]
+}
+
 PATTERNS = {
     "acorn": __ACORN,
     "blinker": __BLINKER,
@@ -105,5 +122,6 @@ PATTERNS = {
     "glider": __GLIDER,
     "pulsar": __PULSAR,
     "r-pentomino": __R_PENTOMINO,
-    "cnc-box": __CNC_BOX
+    "cnc-box": __CNC_BOX,
+    "wrap-test": __WRAP_TEST
 }
