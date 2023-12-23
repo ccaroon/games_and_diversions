@@ -1,9 +1,9 @@
+import ast
 import copy
 import curses
+import re
 import time
 import random
-
-import game_of_life.patterns as gol_patterns
 
 class GameOfLife:
     """ Conway's Game of Life Simulator """
@@ -60,15 +60,13 @@ class GameOfLife:
             "standby": self.__board1
         }
 
-        pattern_name = kwargs.get("pattern")
-        pattern = gol_patterns.PATTERNS.get(pattern_name)
+        self.__pattern_name = None
+        pattern = kwargs.get("pattern")
         if pattern:
-            self.__seed_from_pattern(
-                self.__boards["active"],
-                pattern,
-                center=True
-            )
+            self.__pattern_name = pattern
+            self.__seed_from_pattern(pattern, center=True)
         else:
+            self.__pattern_name = "Random"
             seed_percent = kwargs.get("seed_percent", 50)
             self.__seed_randomly(self.__boards["active"], percent=seed_percent)
 
@@ -101,7 +99,7 @@ class GameOfLife:
         # Display generation count
         self.__screen.addstr(
             self.__height, 0,
-            f"|[{self.__width}]x[{self.__height}]|Wrap: {self.__wrap_edges}|Gen: {self.__generation}/{self.__max_gens}|",
+            f"|[{self.__width}]x[{self.__height}]|{self.__pattern_name}|Wrap: {self.__wrap_edges}|Gen: {self.__generation}/{self.__max_gens}|",
             curses.color_pair(self.COLOR_BLACK_GREEN)
         )
         self.__screen.refresh()
@@ -122,13 +120,41 @@ class GameOfLife:
         # Display generation count
         print(f"Generation: {self.__generation}")
 
-    def __seed_from_pattern(self, board, pattern, offset:tuple=(0,0), center=False):
-        pat_width = pattern["width"]
-        pat_height = pattern["height"]
+    def __seed_from_pattern(self, pattern, **kwargs):
+        # Figure out the path to the pattern file
+        pattern_path = pattern
+        if not pattern_path.startswith(("/", "./")):
+            pattern_path = f"./patterns/{pattern}"
+
+        # Read the pattern from the file & glean some metdata
+        pat_width = 0
+        pat_height = 0
+        bitmap = []
+        with open(pattern_path, "r", encoding="utf-8") as fptr:
+            line = fptr.readline()
+            while line:
+                line = re.sub("\s+", "", line)
+                if line.startswith("#"):
+                    # Example: gol-hint:center=False;offset=(1,2)
+                    if "gol-hint" in line:
+                        (_, hint_str) = line.split(":", 2)
+                        hints = hint_str.split(";")
+                        for hint in hints:
+                            # self.__debug(hint, True)
+                            (option, value) = hint.split("=", 2)
+                            kwargs[option] = ast.literal_eval(value)
+                else:
+                    pat_width = len(line)
+                    pat_height += 1
+                    bitmap.extend(list(line))
+
+                line = fptr.readline()
 
         if pat_width > self.__width or pat_height > self.__height:
             raise ValueError(f"Board size to small for pattern. Min Size: ({pat_width}x{pat_height})")
 
+        center = kwargs.get("center", False)
+        offset = kwargs.get("offset", (0,0))
         # Compute offset to center pattern on board
         if center:
             # // 4 b/c cells are printed with a ' ' between them
@@ -138,11 +164,12 @@ class GameOfLife:
             off_x = offset[0]
             off_y = offset[1]
 
-        bitmap = pattern["bitmap"]
+        # Populate the board
+        board = self.__boards["active"]
         for (idx, state) in enumerate(bitmap):
             x = idx % pat_width
             y = idx // pat_width
-            board[y+off_y][x+off_x] = self.__alive if state else self.__dead
+            board[y+off_y][x+off_x] = self.__alive if int(state) else self.__dead
 
     def __seed_randomly(self, board, percent=50):
         width = self.__width

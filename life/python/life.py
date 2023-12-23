@@ -24,7 +24,7 @@ parser.add_argument("--dead",
     type=str, default=" ", help="Dead cell character")
 
 parser.add_argument("--pattern",
-    type=str, default=None, help="Seed pattern")
+    type=str, default=None, help="Seed pattern: Absolute or relative path OR named pattern in patterns/ dir.")
 
 parser.add_argument("--seed-percent", "-p",
     type=int, default=50, help="Percentage of board to seed with live cells when randomly seeding.")
