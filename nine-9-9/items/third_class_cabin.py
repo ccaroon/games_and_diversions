@@ -93,7 +93,7 @@ The ship shakes violently almost knocking you off your feet. As you regain your 
 """)
 porthole.scene.add_dialogue(F"""
 It's official. The {porthole} has blown open and sea water is pouring into the room in massive quantities.
-I's already ankle deep.
+It's already ankle deep.
 """)
 porthole.scene.add_action(end_portal_cracking, pause=False)
 # ------------------------------------------------------------------------------
