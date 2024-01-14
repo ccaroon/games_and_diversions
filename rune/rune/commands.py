@@ -1,15 +1,14 @@
 from adventurelib import *
 
 # TODO: commands
-# travel
 # fight
 # search
 # check clock
-# help
 # rest
 # inventory
 
 REALM = None
+PLAYER = None
 
 # ------------------------------------------------------------------------------
 # Game
@@ -30,45 +29,6 @@ def save_state():
 #     else:
 #         print("You have nothing!")
 
-# @when("take THING from OBJECT")
-# @when("take THING off OBJECT")
-# @when("remove THING from OBJECT")
-# def take_item1(thing, object):
-#     obj = CURRENT_ROOM.objects.find(object)
-
-#     if obj:
-#         item = obj.items.take(thing)
-#         if item:
-#             INVENTORY.add(item)
-#             say(F"You remove the {item} from the {obj}.")
-#         else:
-#             say(F"You don't see a {thing} on the {object}")
-#     else:
-#         say(F"You don't see any {object} in here.")
-
-# @when("pick up THING")
-# @when("take THING")
-# def take_item2(thing):
-#     item = CURRENT_ROOM.items.take(thing)
-#     if item:
-#         INVENTORY.add(item)
-#         print(F"You take the {thing}.")
-#     else:
-#         obj = CURRENT_ROOM.objects.find(thing)
-#         if obj:
-#             say(F"You can't pick that up.")
-#         else:
-#             say(F"You don't see any {thing} here.")
-
-# @when("drop THING")
-# def remove_item(thing):
-#     item = INVENTORY.take(thing)
-#     if item:
-#         CURRENT_ROOM.items.add(item)
-#         say(F"Dropped {thing}.")
-#     else:
-#         say(F"You're not even carrying a {thing}.")
-
 # @when("examine THING")
 # @when("x THING")
 # @when("look at THING")
@@ -82,61 +42,43 @@ def save_state():
 #     else:
 #         say(F"You don't have any {thing}.")
 # ------------------------------------------------------------------------------
-# Room Related Commands
-# ------------------------------------------------------------------------------
 @when("l")
 @when("look")
 def look():
-    print(REALM.current_location)
+    print(PLAYER.point)
+    print(PLAYER.point.actions())
+    print(PLAYER.point.exits())
 
-    # if CURRENT_ROOM.items:
-    #     print("\nLooking around you reveals: ")
-    #     for thing in CURRENT_ROOM.items:
-    #         print(thing)
+@when("stats")
+def show_player_stats():
+    # TODO: show weapons
+    # TODO: show gear
+    # TODO: show rune
+    # TODO: show inventory
+    # TODO: similar to player sheet
+    print(PLAYER.stats())
 
-    # TODO: better incorporate exits in to the narrative
-    print(REALM.current_location.exits())
+@when("travel POINT")
+@when("move to POINT")
+def travel(point):
+    if PLAYER.travel(point):
+        look()
+    else:
+        print(f"You can't get to {point} from here!")
+
+@when("rest")
+def rest():
+    if PLAYER.point.can("rest"):
+        PLAYER.rest()
+        print("You feel refreshed!")
+        show_player_stats()
+    else:
+        print("You can't rest here!")
 
 @when("map")
 def map():
     say("Sure would be nice to have a map of this place.")
-# ------------------------------------------------------------------------------
-# Movement
-# ------------------------------------------------------------------------------
-# @when("exit")
-# def leave():
-#     global CURRENT_ROOM
 
-#     if contexts.LOCKED_IN.is_active():
-#         say("You're locked in!")
-#     else:
-#         exits = CURRENT_ROOM.exits()
-#         if len(exits) > 1:
-#             say(F"""
-#                 There's more than one way to leave this room. Which one would you like to try?
-#                 {exits}
-#             """)
-#         else:
-#             CURRENT_ROOM = CURRENT_ROOM.exit(exits[0])
-#             print(CURRENT_ROOM)
-
-# @when('n', direction='north')
-# @when('e', direction='east')
-# @when('s', direction='south')
-# @when('w', direction='west')
-# @when("travel POINT")
-# def travel(point):
-#     global CURRENT_ROOM
-
-#     if contexts.LOCKED_IN.is_active():
-#         say("You're locked in!")
-#     else:
-#         room = CURRENT_ROOM.exit(direction)
-#         if room:
-#             CURRENT_ROOM = room
-#             print(CURRENT_ROOM)
-#         else:
-#             say(F"You can't move {direction}.")
 # ------------------------------------------------------------------------------
 # Cheating
 # ------------------------------------------------------------------------------

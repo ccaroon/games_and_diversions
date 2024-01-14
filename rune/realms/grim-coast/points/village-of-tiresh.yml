@@ -1,0 +1,24 @@
+---
+name: Village of Tiresh
+# TODO: complete actions
+actions:
+  search:
+    when: day
+  learn:
+    when: day
+  fight:
+    when: night
+  delve:
+    when: night
+travel:
+  - name: sigil
+    desc: The safety of the Sigil is down the path.
+  - name: gnarled-tree
+    desc: An ominous forest looms to the east.
+  - name: boat-house
+    desc: A solitary structure stands on the nearby coast.
+  - name: graven-keep
+    desc: The Keep of this Realm is atop a far-off hill.
+flavor_text: |
+  Clearly abandoned, though there are some signs of recent visitors. This place
+  is as quiet as a grave.

@@ -1,24 +1,42 @@
 #!/usr/bin/env python
-import adventurelib
+"""
+A Virtual Tabletop for Rune By Spencer Campbell & Published by Gila RPGs (gilarpgs.com)
+"""
+import argparse
 import random
 
+import adventurelib
+
+from rune.character import Character
 from rune.realm import Realm
 import rune.commands
 
 # ------------------------------------------------------------------------------
-# TODO: load realm
-REALM = Realm("realms/grim-coast")
-rune.commands.REALM = REALM
+parser = argparse.ArgumentParser(
+    description='RUNE - A solo tabletop roleplaying game. By Spencer Campbell. Published by Gila RPGs (gilarpgs.com).'
+)
+# parser.set_defaults(func=usage, app=parser)
+parser.add_argument("realm", type=str)
+parser.add_argument("character", type=str)
+args = parser.parse_args()
+# ------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+# Realm
+realm = Realm(args.realm)
+rune.commands.REALM = realm
+
 # TODO: load/init clock
-# TODO: load character
-# player = Character(f"")
-# REALM.enter(player)
+
+# Character
+player = Character(args.character)
+rune.commands.PLAYER = player
+player.enter(realm)
+
 # TODO: load starting equipment
-# TODO: load starting point
-# TODO: export starting point
 # ------------------------------------------------------------------------------
 def prompt():
-    return f"{REALM}> "
+    return f"{player}> "
 adventurelib.prompt = prompt
 
 def invalid_command(cmd):
@@ -29,5 +47,6 @@ def invalid_command(cmd):
 adventurelib.no_command_matches = invalid_command
 
 # ------------------------------------------------------------------------------
-REALM.intro()
+realm.intro()
+rune.commands.look()
 adventurelib.start(help=True)

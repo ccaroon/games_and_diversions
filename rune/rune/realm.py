@@ -13,13 +13,10 @@ class Realm(Base):
         Args:
             path (str): Path the the realm data file directory. Ex: realms/grim-coast
         """
-        super().__init__(f"{path}/map.yml")
+        super().__init__(f"{path}/realm.yml")
 
         self.__path = path
-        self.__points = []
         self.__load_points()
-        self.__current_location = self.__points[0]
-
         self.__init_intro()
 
     def __init_intro(self):
@@ -27,33 +24,25 @@ class Realm(Base):
         self.__intro.add_dialogue(self.name, enlarge=True, color=colorama.Fore.LIGHTBLUE_EX)
         self.__intro.add_dialogue(self.flavor_text, color=colorama.Fore.LIGHTGREEN_EX)
 
-    def __load_points(self, ):
+    def __load_points(self):
+        self.__points = {}
         for pt_data in self._data["points"]:
-            self.__points.append(Point(f"{self.__path}/points/{pt_data['name']}.yml"))
+            self.__points[pt_data["name"]] = Point(f"{self.__path}/points/{pt_data['name']}.yml")
+
+        self.__starting_point = self.point(self._data["points"][0]["name"])
 
     def __str__(self):
-        return f"{self.name}:{self.__current_location.name}"
-
-    @property
-    def current_location(self):
-        return self.__current_location
-
-    def set_location(self, point:Point):
-        # TODO: iff possible to travel to point
-        self.__current_location = Point
+        return f"{self.name}"
 
     def intro(self):
         self.__intro.play(clear_screen=True)
 
+    @property
+    def starting_point(self):
+        return self.__starting_point
+
+    def point(self, name):
+        return self.__points.get(name)
 
 
-
-# scene = CutScene("Intro")
-# scene.add_action(utils.clear_screen, pause=False)
-# scene.add_dialogue("999",          enlarge=True, color=Fore.RED)
-# scene.add_dialogue("Nine Hours",   enlarge=True, color=Fore.WHITE)
-# scene.add_dialogue("Nine Persons", enlarge=True, color=Fore.WHITE)
-# scene.add_dialogue("Nine Doors",   enlarge=True, color=Fore.RED)
-# scene.add_dialogue("""
-# Off in the murky, fog shrouded distance appears a cruise ship. It slowly turns broadside as it explodes in a fireball.
-# """)
+#

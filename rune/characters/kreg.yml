@@ -1,8 +1,12 @@
 ---
 name: Kraegan
 health: 10
+harm: 0
 stamina: 2
 lore: 0
 weapons: []
 gear: []
 inventory: []
+save_data:
+  realm: grim-coast
+  point: sigil
