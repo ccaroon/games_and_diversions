@@ -1,0 +1,16 @@
+---
+name: Sigil
+actions:
+  rest:
+    when: day | night
+    effect:
+      - recover all health
+      - reset all fights
+travel:
+  - name: village-of-tiresh
+    desc: There's a quiet village along the coast, eerily still.
+  - name: gnarled-tree
+    desc: An ominous forest looms to the north.
+flavor_text: |
+  A sigil carved into the very soul of this Realm, connecting you with it. This
+  is a place of rest, recovery and rebirth.

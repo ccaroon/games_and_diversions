@@ -1,0 +1,11 @@
+---
+name: Ghoul
+type: Undead
+health: 4
+range: same & adjacent
+1-3: move 1, harm 1
+4-5: move 2, harm 1, gain 1 health
+6: gain 3 health
+flavor_text: |
+  Unnaturally resilent predators. Have a sixth sense for corpses, make them
+  excellent trackers of the Engraved.

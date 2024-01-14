@@ -1,0 +1,16 @@
+---
+name: Grim Coast
+points:
+  - name: sigil
+  # - name: village-of-tiresh
+  # - name: gnarled-tree
+  # - name: boat-house
+  # - name: graven-keep
+  # - name: ruined-king
+  # - name: ruinous-camp
+  # - name: lost-knight
+flavor_text: |
+  Icy wind blows against your grave marked skin. A heavy weight hangs in the air
+  of the Grim Coast. Atop a hill in the distance, a singular Keep stands above
+  a desolate land.
+  Carving the Sigil into the ground, you prepare yourself.

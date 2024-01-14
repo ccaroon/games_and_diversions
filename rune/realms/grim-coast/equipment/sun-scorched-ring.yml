@@ -1,0 +1,8 @@
+---
+name: Sun Scorched Ring
+type: gear
+criteria: Less than half Health
+effect: +1 Harm to Undead enemies
+flavor_text: |
+  Fire magic was declared forbidden in the Grim Coast, just before the dead took
+  the keep. The bearer of this ring is a traitor to the Realm.

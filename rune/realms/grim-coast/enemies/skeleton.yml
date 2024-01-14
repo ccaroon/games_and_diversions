@@ -1,0 +1,10 @@
+---
+name: Skeleton
+type: Undead
+range: same & adjacent
+1-4: move 1, harm 1
+5: move 1, harm 2
+6: move 2, harm 2
+flavor_text: |
+  Tattered clothing covers the animated dead. The style is unlike anything
+  you've ever seen on this island.
