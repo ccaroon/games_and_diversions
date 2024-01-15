@@ -3,6 +3,7 @@ import colorama
 from rune.base import Base
 from rune.point import Point
 
+from scriptum.context import Context
 from scriptum.scene import Scene
 
 class Realm(Base):
@@ -18,6 +19,13 @@ class Realm(Base):
         self.__path = path
         self.__load_points()
         self.__init_intro()
+        self.__init_clocks()
+
+    def __init_clocks(self):
+        # TODO: implement
+        for clock in self._data["clocks"]:
+            pass
+
 
     def __init_intro(self):
         self.__intro = Scene("Intro")

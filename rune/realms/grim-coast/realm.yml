@@ -1,5 +1,30 @@
 ---
 name: Grim Coast
+init:
+  - context -> add "day" with icon ☀️
+  - context -> add "night" with icon 🌑
+  - context -> activate "day"
+clocks:
+  - name: Day/Night
+    type: cyclical
+    segments: 4
+    effect: context -> toggle "day" and "night"
+    triggers:
+      - travel
+      - fight
+      - search
+      - learn
+      - delve
+death_penalties:
+  - name: cursed
+    effect:
+      - roll 1d6
+      - compare 1-3 -> player move - 1
+      - compare 4-5 -> player harm + 1
+      - compare 6 -> player stamina - 1
+    flavor_text: |
+      A curse hangs over you, something looms from the grave and sticks to your
+      skin.
 points:
   - name: sigil
   - name: village-of-tiresh

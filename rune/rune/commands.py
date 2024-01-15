@@ -58,7 +58,7 @@ def show_player_stats():
     # TODO: similar to player sheet
     print(PLAYER.stats())
 
-@when("travel POINT")
+@when("travel to POINT")
 @when("move to POINT")
 def travel(point):
     if PLAYER.travel(point):

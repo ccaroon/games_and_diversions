@@ -7,6 +7,8 @@ import random
 
 import adventurelib
 
+from rune.rvm.rvm import RVM
+
 from rune.character import Character
 from rune.realm import Realm
 import rune.commands
@@ -20,6 +22,10 @@ parser.add_argument("realm", type=str)
 parser.add_argument("character", type=str)
 args = parser.parse_args()
 # ------------------------------------------------------------------------------
+import sys
+parser = RVM.get("context")
+parser.parse('add "day" with icon ☀️')
+sys.exit(0)
 
 # ------------------------------------------------------------------------------
 # Realm
