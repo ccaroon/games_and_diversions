@@ -19,7 +19,7 @@ parser.add_argument("height", type=int)
 
 # Options
 parser.add_argument("--alive",
-    type=str, default="*", help="Live cell character")
+    type=str, default="●", help="Live cell character")
 parser.add_argument("--dead",
     type=str, default=" ", help="Dead cell character")
 

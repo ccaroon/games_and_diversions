@@ -43,7 +43,7 @@ class GameOfLife:
         if self.__height > curses.LINES or self.__width > curses.COLS // 2:
             raise ValueError(f"Screen too small: Max Width: {curses.COLS // 2} | Max Height: {curses.LINES-1}")
 
-        self.__alive = kwargs.get("alive", "*")
+        self.__alive = kwargs.get("alive", "●")
         self.__dead = kwargs.get("dead", " ")
 
         self.__generation = 1
