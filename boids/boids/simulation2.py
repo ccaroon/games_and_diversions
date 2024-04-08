@@ -15,6 +15,9 @@ class Boid:
         self.y = y
         self.dx = dx or random.random() * 10 - 5
         self.dy = dy or random.random() * 10 - 5
+        self.perching = False
+        # Set to a random # of iterations when the boid perches
+        self.perch_time = None
         self.__history = []
 
     def __repr__(self):
@@ -31,10 +34,12 @@ class Boid:
 
 class BoidSimulation2:
     VISUAL_RANGE = 75
+    MARGIN = 3
 
     MARKERS = {
         "small-dot": "·",
-        "large-dot": "●"
+        "large-dot": "●",
+        "dot-circle": "⊙"
     }
     DEFAULT_MARKER = MARKERS["small-dot"]
 
@@ -57,13 +62,16 @@ class BoidSimulation2:
 
         self.__iteration_count = kwargs.get("iterations", 100)
         self.__delay = kwargs.get("delay", 0.075)
+        self.__perch_chance = kwargs.get("perch_chance", 0.25)
         self.__debug = kwargs.get("debug", False)
 
         self.__screen = stdscr
         self.__screen.nodelay(True)
 
         self.__width = curses.COLS - 1
-        self.__height = curses.LINES - 1
+        # -1 extra for info line at bottom
+        self.__height = curses.LINES - 2
+        self.__ground_level = self.__height - self.MARGIN
 
         self.__boids = []
         init_pattern = random.choice(("random", "center"))
@@ -107,20 +115,24 @@ class BoidSimulation2:
     # Constrain a boid to within the window. If it gets too close to an edge,
     # nudge it back in and reverse its direction.
     def __keep_within_bounds(self, boid):
-        margin = 3
         turn_factor = 1
 
-        if boid.x < margin:
+        if boid.x < self.MARGIN:
             boid.dx += turn_factor
 
-        if boid.x > self.__width - margin:
+        if boid.x > self.__width - self.MARGIN:
             boid.dx -= turn_factor
 
-        if boid.y < margin:
+        if boid.y < self.MARGIN:
             boid.dy += turn_factor
 
-        if boid.y > self.__height - margin:
+        if boid.y > self.__height - self.MARGIN:
             boid.dy -= turn_factor
+
+        if boid.y >= self.__ground_level and random.random() < self.__perch_chance:
+            boid.perching = True
+            # number of iterations to perch
+            boid.perch_time = random.randint(5, 25)
 
 
     # Find the center of mass of the other boids and adjust velocity slightly to
@@ -222,24 +234,30 @@ class BoidSimulation2:
 
     def tick(self):
         for boid in self.__boids:
-            # Update the velocities according to each rule
-            self.__fly_towards_center(boid)
-            self.__avoid_others(boid)
-            self.__match_velocity(boid)
-            self.__limit_speed(boid)
-            self.__keep_within_bounds(boid)
+            if boid.perching:
+                if boid.perch_time > 0:
+                    boid.perch_time -= 1
+                else:
+                    boid.perching = False
+            else:
+                # Update the velocities according to each rule
+                self.__fly_towards_center(boid)
+                self.__avoid_others(boid)
+                self.__match_velocity(boid)
+                self.__limit_speed(boid)
+                self.__keep_within_bounds(boid)
 
-            # Update the position based on the current velocity
-            boid.x += boid.dx
-            # Keep in col/width bounds
-            boid.x = 0 if boid.x < 0 else boid.x
-            boid.x = self.__width if boid.x > self.__width else boid.x
+                # Update the position based on the current velocity
+                boid.x += boid.dx
+                # Keep in col/width bounds
+                boid.x = self.MARGIN if boid.x < 0 else boid.x
+                boid.x = self.__width - self.MARGIN if boid.x > self.__width else boid.x
 
-            boid.y += boid.dy
-            # keep in row/height bounds
-            boid.y = 0 if boid.y < 0 else boid.y
-            boid.y = self.__height if boid.y > self.__height else boid.y
-            # boid.update_history()
+                boid.y += boid.dy
+                # keep in row/height bounds
+                boid.y = self.MARGIN if boid.y < 0 else boid.y
+                boid.y = self.__height - self.MARGIN if boid.y > self.__height else boid.y
+                # boid.update_history()
 
         self.__iteration += 1
 
@@ -260,8 +278,8 @@ class BoidSimulation2:
             self.__screen.addstr(row, col, f"{marker}", curses.color_pair(self.COLOR_BOID))
 
         self.__screen.addstr(
-            self.__height, 0,
-            f"Boids| {self.__width}x{self.__height} | {self.__count} | {self.__iteration}/{self.__iteration_count} | ",
+            self.__height+1, 0,
+            f"Boids| {self.__width}x{self.__height} | {self.__count} {self.__perch_chance*100}% | {self.__iteration}/{self.__iteration_count} | ",
             curses.color_pair(self.COLOR_BLACK_GREEN)
         )
 
