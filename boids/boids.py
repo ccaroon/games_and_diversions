@@ -2,10 +2,11 @@
 import argparse
 import curses
 
-from boids.simulation import Simulation
+# from boids.simulation1 import BoidSimulation1
+from boids.simulation2 import BoidSimulation2
 
 def main(stdscr, args):
-    boids = Simulation(
+    boids = BoidSimulation2(
         stdscr,
         args.count,
         iterations=args.iterations,

@@ -7,7 +7,7 @@ import numpy as np
 from scipy.spatial.distance import squareform, pdist
 from numpy.linalg import norm
 
-class Simulation:
+class BoidSimulation1:
     MIN_DISTANCE = 1.0
     MAX_RULE_VELO = 0.03
     MAX_VELOCITY = .55
