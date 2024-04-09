@@ -18,8 +18,9 @@ class Boid:
         self.perching = False
         # Set to a random # of iterations when the boid perches
         self.perch_time = None
-        # NOTE: Currently unused
-        self.__history = []
+
+        self.history = []
+        self.update_history()
 
     def __repr__(self):
         return f"Boid({self.x},{self.y},{self.dx},{self.dy})"
@@ -28,9 +29,9 @@ class Boid:
         return self.__repr__()
 
     def update_history(self):
-        self.__history.append([self.x, self.y])
+        self.history.append((self.x, self.y))
         # Only keep MAX_HISTORY records
-        self.__history = self.__history[-self.MAX_HISTORY:]
+        self.history = self.history[-self.MAX_HISTORY:]
 
 
 class BoidSimulation2:
@@ -43,14 +44,18 @@ class BoidSimulation2:
         "circle-dot": "⊙"
     }
     DEFAULT_MARKER = MARKERS["small-dot"]
+    TRAIL_MARKER = MARKERS["small-dot"]
 
     COLOR_BOID = 1
-    COLOR_BLACK_GREEN = 2
-    COLOR_DEBUG = 3
+    COLOR_BOID_TRAIL = 2
+    COLOR_BLACK_GREEN = 3
+    COLOR_DEBUG = 4
 
     def __init__(self, stdscr, count, **kwargs):
         curses.init_pair(self.COLOR_BOID,
                          curses.COLOR_GREEN, curses.COLOR_BLACK)
+        curses.init_pair(self.COLOR_BOID_TRAIL,
+                         curses.COLOR_WHITE, curses.COLOR_BLACK)
         curses.init_pair(self.COLOR_BLACK_GREEN,
                          curses.COLOR_BLACK, curses.COLOR_GREEN)
         curses.init_pair(self.COLOR_DEBUG,
@@ -64,6 +69,7 @@ class BoidSimulation2:
         self.__iteration_count = kwargs.get("iterations", 100)
         self.__delay = kwargs.get("delay", 0.075)
         self.__perch_chance = kwargs.get("perch_chance", 25) / 100.0
+        self.__trails = kwargs.get("trails", False)
         self.__debug = kwargs.get("debug", False)
 
         self.__screen = stdscr
@@ -241,6 +247,8 @@ class BoidSimulation2:
                 else:
                     boid.perching = False
             else:
+                boid.update_history()
+
                 # Update the velocities according to each rule
                 self.__fly_towards_center(boid)
                 self.__avoid_others(boid)
@@ -258,7 +266,6 @@ class BoidSimulation2:
                 # keep in row/height bounds
                 boid.y = self.MARGIN if boid.y < 0 else boid.y
                 boid.y = self.__height - self.MARGIN if boid.y > self.__height else boid.y
-                # boid.update_history()
 
         self.__iteration += 1
 
@@ -268,8 +275,8 @@ class BoidSimulation2:
         line = 0
         for idx, boid in enumerate(self.__boids):
             angle = math.atan2(boid.dy, boid.dx)
-            col = int(boid.x)
             row = int(boid.y)
+            col = int(boid.x)
             marker = idx if self.__debug else self.__marker
 
             if self.__debug:
@@ -278,9 +285,15 @@ class BoidSimulation2:
 
             self.__screen.addstr(row, col, f"{marker}", curses.color_pair(self.COLOR_BOID))
 
+            if self.__trails:
+                for h_loc in boid.history:
+                    trow = int(h_loc[1])
+                    tcol = int(h_loc[0])
+                    self.__screen.addstr(trow, tcol, f"{self.TRAIL_MARKER}", curses.color_pair(self.COLOR_BOID_TRAIL))
+
         self.__screen.addstr(
             self.__height+1, 0,
-            f"Boids| {self.__width}x{self.__height} | {self.__count} {self.__perch_chance*100}% | {self.__iteration}/{self.__iteration_count} | ",
+            f"Boids| {self.__width}x{self.__height} | {self.__count} {self.__perch_chance*100:0.1f}% | {self.__iteration}/{self.__iteration_count} | ",
             curses.color_pair(self.COLOR_BLACK_GREEN)
         )
 
@@ -303,6 +316,8 @@ class BoidSimulation2:
                 break
             elif input == ord("b"):
                 self.add()
+            elif input == ord("t"):
+                self.__trails = False if self.__trails else True
             elif input == curses.KEY_MOUSE:
                 id,x,y,_,button = curses.getmouse()
                 if button & curses.BUTTON1_CLICKED:
