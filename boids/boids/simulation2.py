@@ -2,7 +2,7 @@
 # Ported / Adapted from https://github.com/beneater/boids
 #
 import curses
-import functools
+# import functools
 import math
 import random
 import time
@@ -18,6 +18,7 @@ class Boid:
         self.perching = False
         # Set to a random # of iterations when the boid perches
         self.perch_time = None
+        # NOTE: Currently unused
         self.__history = []
 
     def __repr__(self):
@@ -39,7 +40,7 @@ class BoidSimulation2:
     MARKERS = {
         "small-dot": "·",
         "large-dot": "●",
-        "dot-circle": "⊙"
+        "circle-dot": "⊙"
     }
     DEFAULT_MARKER = MARKERS["small-dot"]
 
@@ -62,7 +63,7 @@ class BoidSimulation2:
 
         self.__iteration_count = kwargs.get("iterations", 100)
         self.__delay = kwargs.get("delay", 0.075)
-        self.__perch_chance = kwargs.get("perch_chance", 0.25)
+        self.__perch_chance = kwargs.get("perch_chance", 25) / 100.0
         self.__debug = kwargs.get("debug", False)
 
         self.__screen = stdscr
@@ -101,15 +102,15 @@ class BoidSimulation2:
         )
 
 
-    def __n_closest_boids(self, boid, n):
-        cmp_func = lambda a,b: self.__distance(boid, a) - self.__distance(boid, b)
-        key_func = functools.cmp_to_key(cmp_func)
-
-        # Sort the copy by distance from `boid`
-        sorted_boids = sorted(self.__boids, key=key_func)
-
-        # Return the `n` closest
-        return sorted_boids[1:n + 1]
+    # def __n_closest_boids(self, boid, n):
+    #     cmp_func = lambda a,b: self.__distance(boid, a) - self.__distance(boid, b)
+    #     key_func = functools.cmp_to_key(cmp_func)
+    #
+    #     # Sort the copy by distance from `boid`
+    #     sorted_boids = sorted(self.__boids, key=key_func)
+    #
+    #     # Return the `n` closest
+    #     return sorted_boids[1:n + 1]
 
 
     # Constrain a boid to within the window. If it gets too close to an edge,
