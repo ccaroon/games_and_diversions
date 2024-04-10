@@ -7,6 +7,7 @@ import math
 import random
 import time
 
+
 class Boid:
     MAX_HISTORY = 10
 
@@ -86,7 +87,6 @@ class BoidSimulation2:
 
         self.__iteration = 1
 
-
     def __init_boids(self, pattern="random"):
         for _ in range(self.__count):
             if pattern == "random":
@@ -100,13 +100,11 @@ class BoidSimulation2:
                 Boid(x, y)
             )
 
-
     def __distance(self, boid1, boid2):
         return math.sqrt(
             (boid1.x - boid2.x) * (boid1.x - boid2.x) +
             (boid1.y - boid2.y) * (boid1.y - boid2.y)
         )
-
 
     # def __n_closest_boids(self, boid, n):
     #     cmp_func = lambda a,b: self.__distance(boid, a) - self.__distance(boid, b)
@@ -117,7 +115,6 @@ class BoidSimulation2:
     #
     #     # Return the `n` closest
     #     return sorted_boids[1:n + 1]
-
 
     # Constrain a boid to within the window. If it gets too close to an edge,
     # nudge it back in and reverse its direction.
@@ -141,88 +138,83 @@ class BoidSimulation2:
             # number of iterations to perch
             boid.perch_time = random.randint(5, 25)
 
-
     # Find the center of mass of the other boids and adjust velocity slightly to
     # point towards the center of mass.
     def __fly_towards_center(self, boid):
-      # adjust velocity by this %
-      centering_factor = 0.005
+        # adjust velocity by this %
+        centering_factor = 0.005
 
-      center_x = 0
-      center_y = 0
-      num_neighbors = 0
+        center_x = 0
+        center_y = 0
+        num_neighbors = 0
 
-      for other_boid in self.__boids:
-        if self.__distance(boid, other_boid) < self.VISUAL_RANGE:
-          center_x += other_boid.x
-          center_y += other_boid.y
-          num_neighbors += 1
+        for other_boid in self.__boids:
+            if self.__distance(boid, other_boid) < self.VISUAL_RANGE:
+                center_x += other_boid.x
+                center_y += other_boid.y
+                num_neighbors += 1
 
-      if num_neighbors:
-        center_x = center_x / num_neighbors
-        center_y = center_y / num_neighbors
+        if num_neighbors:
+            center_x = center_x / num_neighbors
+            center_y = center_y / num_neighbors
 
-        boid.dx += (center_x - boid.x) * centering_factor
-        boid.dy += (center_y - boid.y) * centering_factor
-
+            boid.dx += (center_x - boid.x) * centering_factor
+            boid.dy += (center_y - boid.y) * centering_factor
 
     # Move away from other boids that are too close to avoid colliding
     def __avoid_others(self, boid):
-      # The distance to stay away from other boids
-      min_distance = 2;
+        # The distance to stay away from other boids
+        min_distance = 2;
 
-      # Adjust velocity by this %
-      avoid_factor = 0.05;
+        # Adjust velocity by this %
+        avoid_factor = 0.05;
 
-      move_x = 0
-      move_y = 0
+        move_x = 0
+        move_y = 0
 
-      for other_boid in self.__boids:
-        if other_boid is not boid:
-          if self.__distance(boid, other_boid) < min_distance:
-            move_x += boid.x - other_boid.x
-            move_y += boid.y - other_boid.y
+        for other_boid in self.__boids:
+            if other_boid is not boid:
+                if self.__distance(boid, other_boid) < min_distance:
+                    move_x += boid.x - other_boid.x
+                    move_y += boid.y - other_boid.y
 
-      boid.dx += move_x * avoid_factor
-      boid.dy += move_y * avoid_factor
-
+        boid.dx += move_x * avoid_factor
+        boid.dy += move_y * avoid_factor
 
     # // Find the average velocity (speed and direction) of the other boids and
     # // adjust velocity slightly to match.
     def __match_velocity(self, boid):
-      # Adjust by this % of average velocity
-      matching_factor = 0.05
+        # Adjust by this % of average velocity
+        matching_factor = 0.05
 
-      avg_dx = 0
-      avg_dy = 0
-      num_neighbors = 0
+        avg_dx = 0
+        avg_dy = 0
+        num_neighbors = 0
 
-      for other_boid in self.__boids:
-        if self.__distance(boid, other_boid) < self.VISUAL_RANGE:
-          avg_dx += other_boid.dx
-          avg_dy += other_boid.dy
-          num_neighbors += 1
+        for other_boid in self.__boids:
+            if self.__distance(boid, other_boid) < self.VISUAL_RANGE:
+                avg_dx += other_boid.dx
+                avg_dy += other_boid.dy
+                num_neighbors += 1
 
-      if num_neighbors:
-        avg_dx = avg_dx / num_neighbors
-        avg_dy = avg_dy / num_neighbors
+        if num_neighbors:
+            avg_dx = avg_dx / num_neighbors
+            avg_dy = avg_dy / num_neighbors
 
-        boid.dx += (avg_dx - boid.dx) * matching_factor
-        boid.dy += (avg_dy - boid.dy) * matching_factor
-
+            boid.dx += (avg_dx - boid.dx) * matching_factor
+            boid.dy += (avg_dy - boid.dy) * matching_factor
 
     # Speed will naturally vary in flocking behavior, but real animals can't go
     # arbitrarily fast.
     def __limit_speed(self, boid):
-      speed_limit = 15
+        speed_limit = 15
 
-      speed = math.sqrt(boid.dx * boid.dx + boid.dy * boid.dy)
-      if speed > speed_limit:
-        boid.dx = (boid.dx / speed) * speed_limit
-        boid.dy = (boid.dy / speed) * speed_limit
+        speed = math.sqrt(boid.dx * boid.dx + boid.dy * boid.dy)
+        if speed > speed_limit:
+            boid.dx = (boid.dx / speed) * speed_limit
+            boid.dy = (boid.dy / speed) * speed_limit
 
-
-    def add(self, loc:tuple=None):
+    def add(self, loc: tuple = None):
         # Add a new Boid
         row = loc[0] if loc is not None else self.__height // 2
         col = loc[1] if loc is not None else self.__width // 2
@@ -230,14 +222,12 @@ class BoidSimulation2:
         self.__boids.append(Boid(col, row))
         self.__count += 1
 
-
     def __dump(self):
         dump_str = ""
         for boid in self.__boids:
             if boid.x < 0 or boid.x > self.__width or boid.y < 0 or boid.y > self.__height:
                 dump_str += f"{boid}\n"
         return dump_str
-
 
     def tick(self):
         for boid in self.__boids:
@@ -292,8 +282,8 @@ class BoidSimulation2:
                     self.__screen.addstr(trow, tcol, f"{self.TRAIL_MARKER}", curses.color_pair(self.COLOR_BOID_TRAIL))
 
         self.__screen.addstr(
-            self.__height+1, 0,
-            f"Boids| {self.__width}x{self.__height} | {self.__count} {self.__perch_chance*100:0.1f}% | {self.__iteration}/{self.__iteration_count} | ",
+            self.__height + 1, 0,
+            f"Boids| {self.__width}x{self.__height} | {self.__count} {self.__perch_chance * 100:0.1f}% | {self.__iteration}/{self.__iteration_count} | ",
             curses.color_pair(self.COLOR_BLACK_GREEN)
         )
 
@@ -319,9 +309,9 @@ class BoidSimulation2:
             elif input == ord("t"):
                 self.__trails = False if self.__trails else True
             elif input == curses.KEY_MOUSE:
-                id,x,y,_,button = curses.getmouse()
+                id, x, y, _, button = curses.getmouse()
                 if button & curses.BUTTON1_CLICKED:
-                    self.add((y,x))
+                    self.add((y, x))
                 # if button & curses.BUTTON2_CLICKED:
                 #     self.scatter((y,x))
 

@@ -6,6 +6,7 @@ import random
 # from boids.simulation1 import BoidSimulation1
 from boids.simulation2 import BoidSimulation2
 
+
 def main(stdscr, args):
     boids = BoidSimulation2(
         stdscr,
@@ -23,6 +24,7 @@ def main(stdscr, args):
     stdscr.nodelay(False)
     stdscr.getch()
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Boids - Flocking Simulation"
@@ -31,7 +33,7 @@ if __name__ == "__main__":
     parser.add_argument("--iterations", "-i", type=int, default=250, required=False, help="Number of iterations to run")
     parser.add_argument("--delay", "-d", type=float, default=0.075, required=False, help="Delay between iterations")
     parser.add_argument("--marker", "-m", type=str, default="·", required=False, help="Character to use as Boid marker")
-    parser.add_argument("--perch_chance", "-p", type=int, default=random.randint(10,50), required=False, help="Chance that a Boid will stop & perch at ground level")
+    parser.add_argument("--perch_chance", "-p", type=int, default=random.randint(10, 50), required=False, help="Chance that a Boid will stop & perch at ground level")
     parser.add_argument("--trails", "-t", action='store_true', help="Display trails")
     parser.add_argument("--debug", action='store_true', help="Turn on debugging")
 
