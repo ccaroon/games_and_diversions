@@ -2,7 +2,6 @@
 # Ported / Adapted from https://github.com/beneater/boids
 #
 import curses
-# import functools
 import math
 import random
 import time
@@ -29,11 +28,24 @@ class Boid:
     def __str__(self):
         return self.__repr__()
 
+    def distance_to(self, other_boid):
+        return math.sqrt(
+            (self.x - other_boid.x) * (self.x - other_boid.x) +
+            (self.y - other_boid.y) * (self.y - other_boid.y)
+        )
+
+    # Speed will naturally vary in flocking behavior, but real animals can't go
+    # arbitrarily fast.
+    def adjust_speed(self, limit=15):
+        speed = math.sqrt(self.dx**2 + self.dy**2)
+        if speed > limit:
+            self.dx = (self.dx / speed) * limit
+            self.dy = (self.dy / speed) * limit
+
     def update_history(self):
         self.history.append((self.x, self.y))
         # Only keep MAX_HISTORY records
         self.history = self.history[-self.MAX_HISTORY:]
-
 
 class BoidSimulation2:
     VISUAL_RANGE = 75
@@ -100,22 +112,6 @@ class BoidSimulation2:
                 Boid(x, y)
             )
 
-    def __distance(self, boid1, boid2):
-        return math.sqrt(
-            (boid1.x - boid2.x) * (boid1.x - boid2.x) +
-            (boid1.y - boid2.y) * (boid1.y - boid2.y)
-        )
-
-    # def __n_closest_boids(self, boid, n):
-    #     cmp_func = lambda a,b: self.__distance(boid, a) - self.__distance(boid, b)
-    #     key_func = functools.cmp_to_key(cmp_func)
-    #
-    #     # Sort the copy by distance from `boid`
-    #     sorted_boids = sorted(self.__boids, key=key_func)
-    #
-    #     # Return the `n` closest
-    #     return sorted_boids[1:n + 1]
-
     # Constrain a boid to within the window. If it gets too close to an edge,
     # nudge it back in and reverse its direction.
     def __keep_within_bounds(self, boid):
@@ -149,7 +145,7 @@ class BoidSimulation2:
         num_neighbors = 0
 
         for other_boid in self.__boids:
-            if self.__distance(boid, other_boid) < self.VISUAL_RANGE:
+            if boid.distance_to(other_boid) < self.VISUAL_RANGE:
                 center_x += other_boid.x
                 center_y += other_boid.y
                 num_neighbors += 1
@@ -174,7 +170,7 @@ class BoidSimulation2:
 
         for other_boid in self.__boids:
             if other_boid is not boid:
-                if self.__distance(boid, other_boid) < min_distance:
+                if boid.distance_to(other_boid) < min_distance:
                     move_x += boid.x - other_boid.x
                     move_y += boid.y - other_boid.y
 
@@ -192,7 +188,7 @@ class BoidSimulation2:
         num_neighbors = 0
 
         for other_boid in self.__boids:
-            if self.__distance(boid, other_boid) < self.VISUAL_RANGE:
+            if boid.distance_to(other_boid) < self.VISUAL_RANGE:
                 avg_dx += other_boid.dx
                 avg_dy += other_boid.dy
                 num_neighbors += 1
@@ -203,16 +199,6 @@ class BoidSimulation2:
 
             boid.dx += (avg_dx - boid.dx) * matching_factor
             boid.dy += (avg_dy - boid.dy) * matching_factor
-
-    # Speed will naturally vary in flocking behavior, but real animals can't go
-    # arbitrarily fast.
-    def __limit_speed(self, boid):
-        speed_limit = 15
-
-        speed = math.sqrt(boid.dx * boid.dx + boid.dy * boid.dy)
-        if speed > speed_limit:
-            boid.dx = (boid.dx / speed) * speed_limit
-            boid.dy = (boid.dy / speed) * speed_limit
 
     def add(self, loc: tuple = None):
         # Add a new Boid
@@ -243,7 +229,7 @@ class BoidSimulation2:
                 self.__fly_towards_center(boid)
                 self.__avoid_others(boid)
                 self.__match_velocity(boid)
-                self.__limit_speed(boid)
+                boid.adjust_speed(limit=15)
                 self.__keep_within_bounds(boid)
 
                 # Update the position based on the current velocity
