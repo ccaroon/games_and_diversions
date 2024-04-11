@@ -33,9 +33,9 @@ class AntzSimulation:
         self.__count = kwargs.get("count", 2)
         self.__day_len = kwargs.get("day_len", 0.10)
         self.__max_days = kwargs.get("max_days", 500)
-        self.__ant_marker = kwargs.get("ant_marker", "⊙")
+        self.__ant_marker = kwargs.get("ant_marker", "●")
         self.__trail_marker = kwargs.get("trail_marker", "·")
-        self.__camp_marker = kwargs.get("camp_marker", "●")
+        self.__camp_marker = kwargs.get("camp_marker", "⊙")
         self.__debug = kwargs.get("debug", False)
 
         self.__day = 1
@@ -79,6 +79,7 @@ class AntzSimulation:
             ant.y = 0
 
     def __look_for_trail(self, ant):
+        ant.following = None
         for other_ant in self.__antz:
             if other_ant is not ant:
                 if ant.on_trail_of(other_ant):
@@ -93,11 +94,11 @@ class AntzSimulation:
                 # Move in chosen direction for X distance
                 distance = random.randint(1, self.MAX_DISTANCE)
                 for _ in range(distance):
-                    self.__look_for_trail(ant)
-
                     ant.move()
+                    self.__look_for_trail(ant)
                     self.__check_bounds(ant)
 
+                # Set up Camp every 3 days
                 if self.__day % 3 == 0:
                     if ant.following is None:
                         ant.set_up_camp()
@@ -116,7 +117,7 @@ class AntzSimulation:
             marker = ant.id if self.__debug else self.__ant_marker
 
             if ant.following is not None:
-                status = f"Ant#{ant.id} is following Ant#{ant.following.id}"
+                status = f"Ant#{ant.id} --> Ant#{ant.following.id}"
 
             color = self.COLOR_ANT1 if ant.id % 2 == 0 else self.COLOR_ANT2
 

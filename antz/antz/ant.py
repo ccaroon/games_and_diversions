@@ -7,6 +7,12 @@ class TrailMark:
         self.dx = ant.dx
         self.dy = ant.dy
 
+    def __repr__(self):
+        return f"({self.x},{self.y}) -> ({self.dx},{self.dy})"
+
+    def __str__(self):
+        return self.__repr__()
+
     def __eq__(self, other):
         return (self.x, self.y) == (other.x, other.y)
         # return (self.x, self.y, self.dx, self.dy) == (other.x, other.y, other.dx, other.dy)
@@ -20,8 +26,8 @@ class TrailMark:
 #         self.dy = ant.dy
 
 class Ant:
-    MAX_TRAIL = 100
-    MAX_CAMPS = MAX_TRAIL // 3
+    MAX_TRAIL = 90
+    MAX_CAMPS = 30
 
     def __init__(self, id, x, y):
         self.id = id
@@ -41,6 +47,16 @@ class Ant:
         self.__camp_days = 0
         self.camp_sites = []
 
+    def __eq__(self, other):
+        return self.x == other.x and self.y == other.y
+
+    def __repr__(self):
+        return f"Ant({self.id}, {self.x}, {self.y})"
+
+    def __str__(self):
+        output = self.__repr__()
+        return f"{output} -> {self.dx},{self.dy} | {len(self.trail)} | {self.is_camping}"
+
     def __valid_direction(self, curr_dx, curr_dy):
         valid = True
 
@@ -58,6 +74,9 @@ class Ant:
         self.dx = random.choice((-1, 0, 1))
         self.dy = random.choice((-1, 0, 1))
 
+    def location(self):
+        return (self.x, self.y)
+
     def choose_direction(self):
         curr_dx = self.dx
         curr_dy = self.dy
@@ -70,13 +89,17 @@ class Ant:
         on_trail = False
         ant_loc = TrailMark(self)
         if ant_loc in other_ant.trail:
+            print(f"Ant#{self.id} is on the trail of Ant#{other_ant.id}")
             on_trail = True
         return on_trail
 
     def follow(self, other_ant):
+        print(f"Ant#{self.id} is following Ant#{other_ant.id}")
         ant_loc = TrailMark(self)
+        print(f"Ant#1: {ant_loc}")
         other_trail = other_ant.trail.copy()
         other_trail.reverse()
+        print(f"Ant#{other_ant.id} trail ... {other_trail}")
         mark_idx = other_trail.index(ant_loc)
 
         mark = other_ant.trail[mark_idx]
