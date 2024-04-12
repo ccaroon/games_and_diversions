@@ -29,8 +29,10 @@ class Ant:
     MAX_TRAIL = 90
     MAX_CAMPS = 30
 
-    def __init__(self, id, x, y):
-        self.id = id
+    CAMP_DAYS = 3
+
+    def __init__(self, uid, x, y):
+        self.uid = uid
         self.x = x
         self.y = y
 
@@ -47,15 +49,16 @@ class Ant:
         self.__camp_days = 0
         self.camp_sites = []
 
+    # TODO: don't like this
     def __eq__(self, other):
         return self.x == other.x and self.y == other.y
 
     def __repr__(self):
-        return f"Ant({self.id}, {self.x}, {self.y})"
+        return f"Ant({self.uid}, {self.x}, {self.y})"
 
     def __str__(self):
         output = self.__repr__()
-        return f"{output} -> {self.dx},{self.dy} | {len(self.trail)} | {self.is_camping}"
+        return f"{output} -> ({self.dx},{self.dy})"
 
     def __valid_direction(self, curr_dx, curr_dy):
         valid = True
@@ -74,6 +77,22 @@ class Ant:
         self.dx = random.choice((-1, 0, 1))
         self.dy = random.choice((-1, 0, 1))
 
+    def status(self):
+        status = ""
+        if self.is_camping:
+            status += f"Camping Day #{self.__camp_days+1}/{self.CAMP_DAYS}"
+
+        if self.following:
+            if self.location() == self.following.location():
+                status += f"Reunited with Ant#{self.following.uid}"
+            else:
+                status += f"Following Ant#{self.following.uid}"
+
+        if not status:
+            status = "Searching"
+
+        return status
+
     def location(self):
         return (self.x, self.y)
 
@@ -89,17 +108,13 @@ class Ant:
         on_trail = False
         ant_loc = TrailMark(self)
         if ant_loc in other_ant.trail:
-            print(f"Ant#{self.id} is on the trail of Ant#{other_ant.id}")
             on_trail = True
         return on_trail
 
     def follow(self, other_ant):
-        print(f"Ant#{self.id} is following Ant#{other_ant.id}")
         ant_loc = TrailMark(self)
-        print(f"Ant#1: {ant_loc}")
         other_trail = other_ant.trail.copy()
         other_trail.reverse()
-        print(f"Ant#{other_ant.id} trail ... {other_trail}")
         mark_idx = other_trail.index(ant_loc)
 
         mark = other_ant.trail[mark_idx]
@@ -127,7 +142,7 @@ class Ant:
 
     def camp(self):
         self.__camp_days += 1
-        if self.__camp_days == 3:
+        if self.__camp_days == self.CAMP_DAYS:
             self.pack_up_camp()
 
     def mark_trail(self):

@@ -1,55 +1,62 @@
-import curses
 import random
 import time
 
+from abc import ABC, abstractmethod
+
 from .ant import Ant
 
-class AntzSimulation:
-    COLOR_ANT1 = 1
-    COLOR_ANT2 = 2
-    COLOR_INFO_BAR = 3
-    COLOR_DEBUG = 4
+
+class AntzSimulation(ABC):
 
     MAX_DISTANCE = 3
 
-    def __init__(self, stdscr, **kwargs):
-        self.__screen = stdscr
-        self.__screen.nodelay(True)
+    # TODO: keep these?
+    N = (0, -1)
+    NE = (1, -1)
+    E = (1, 0)
+    SE = (1, 1)
+    S = (0, 1)
+    SW = (-1, 1)
+    W = (-1, 0)
+    NW = (-1, -1)
 
-        self.__width = curses.COLS - 1
-        # -1 extra for info line at bottom
-        self.__height = curses.LINES - 2
+    def __init__(self, width, height, **kwargs):
+        self._width = width
+        self._height = height
 
-        curses.init_pair(self.COLOR_ANT1,
-                         curses.COLOR_RED, curses.COLOR_BLACK)
-        curses.init_pair(self.COLOR_ANT2,
-                         curses.COLOR_WHITE, curses.COLOR_BLACK)
-        curses.init_pair(self.COLOR_INFO_BAR,
-                         curses.COLOR_BLACK, curses.COLOR_WHITE)
-        curses.init_pair(self.COLOR_DEBUG,
-                         curses.COLOR_BLACK, curses.COLOR_RED)
+        self._count = kwargs.get("count", 2)
+        self._day_len = kwargs.get("day_len", 0.10)
+        self._max_days = kwargs.get("max_days", 500)
+        self._ant_marker = kwargs.get("ant_marker", "●")
+        self._trail_marker = kwargs.get("trail_marker", "·")
+        self._camp_marker = kwargs.get("camp_marker", "⊙")
+        self._debug = kwargs.get("debug", False)
 
-        self.__show_trails = True
-        self.__count = kwargs.get("count", 2)
-        self.__day_len = kwargs.get("day_len", 0.10)
-        self.__max_days = kwargs.get("max_days", 500)
-        self.__ant_marker = kwargs.get("ant_marker", "●")
-        self.__trail_marker = kwargs.get("trail_marker", "·")
-        self.__camp_marker = kwargs.get("camp_marker", "⊙")
-        self.__debug = kwargs.get("debug", False)
+        self._day = 1
+        self._simulation_complete = False
 
-        self.__day = 1
+        self._antz = []
+        if self._debug:
+            self.__debug_init_antz()
+        else:
+            self.__init_antz()
 
-        self.__antz = []
-        self.__init_antz()
+    def __debug_init_antz(self):
+        self._antz.append(Ant(1, 16, 32))
+        self._antz[0].dx = self.NE[0]
+        self._antz[0].dy = self.NE[1]
+
+        self._antz.append(Ant(2, 21, 30))
+        self._antz[1].dx = self.N[0]
+        self._antz[1].dy = self.N[1]
 
     def __init_antz(self):
-        for idx in range(self.__count):
-            self.__antz.append(
+        for idx in range(self._count):
+            self._antz.append(
                 Ant(
-                    idx,
-                    random.randint(0, self.__width),
-                    random.randint(0, self.__height)
+                    idx + 1,
+                    random.randint(0, self._width),
+                    random.randint(0, self._height)
                 )
             )
 
@@ -67,105 +74,64 @@ class AntzSimulation:
 
     def __check_bounds(self, ant):
         if ant.x < 0:
-            ant.x = self.__width
+            ant.x = self._width
 
-        if ant.x > self.__width:
+        if ant.x > self._width:
             ant.x = 0
 
         if ant.y < 0:
-            ant.y = self.__height
+            ant.y = self._height
 
-        if ant.y > self.__height:
+        if ant.y > self._height:
             ant.y = 0
 
     def __look_for_trail(self, ant):
-        ant.following = None
-        for other_ant in self.__antz:
+        for other_ant in self._antz:
             if other_ant is not ant:
                 if ant.on_trail_of(other_ant):
                     ant.follow(other_ant)
 
     def tick(self):
-        for ant in self.__antz:
+        for ant in self._antz:
             if ant.is_camping:
                 ant.camp()
             else:
-                ant.choose_direction()
+                if not self._debug:
+                    ant.choose_direction()
                 # Move in chosen direction for X distance
-                distance = random.randint(1, self.MAX_DISTANCE)
+                # TODO: fix random distance
+                distance = 1  # random.randint(1, self.MAX_DISTANCE)
                 for _ in range(distance):
                     ant.move()
                     self.__look_for_trail(ant)
                     self.__check_bounds(ant)
 
                 # Set up Camp every 3 days
-                if self.__day % 3 == 0:
+                if self._day % 3 == 0:
                     if ant.following is None:
                         ant.set_up_camp()
 
-        self.__day += 1
+        # They have been reunited. Stop the simulation.
+        if self._antz[0].location() == self._antz[1].location():
+            self._simulation_complete = True
 
+        self._day += 1
 
+    @abstractmethod
+    def _process_input(self):
+        pass
+
+    @abstractmethod
     def display(self):
-        self.__screen.erase()
-
-        line = 0
-        status = "LOST"
-        for ant in self.__antz:
-            row = ant.y
-            col = ant.x
-            marker = ant.id if self.__debug else self.__ant_marker
-
-            if ant.following is not None:
-                status = f"Ant#{ant.id} --> Ant#{ant.following.id}"
-
-            color = self.COLOR_ANT1 if ant.id % 2 == 0 else self.COLOR_ANT2
-
-            if self.__debug:
-                self.__screen.addstr(line, 0, f"{ant.id}) ({row},{col}) -> [{ant.dx},{ant.dy}]", curses.color_pair(color))
-                line += 1
-
-            # Display Trail first so that it does not hide the antz current location
-            if self.__show_trails:
-                for tmark in ant.trail:
-                    trow = tmark.y
-                    tcol = tmark.x
-                    self.__screen.addstr(trow, tcol, f"{self.__trail_marker}", curses.color_pair(color))
-
-            # Display camp sites
-            for site in ant.camp_sites:
-                crow = site[1]
-                ccol = site[0]
-                self.__screen.addstr(crow, ccol, f"{self.__camp_marker}", curses.color_pair(color))
-
-            # Lastly, display ant location
-            self.__screen.addstr(row, col, f"{marker}", curses.color_pair(color))
-
-        self.__screen.addstr(
-            self.__height + 1, 0,
-            f"Antz | {self.__width}x{self.__height} | {self.__count} | Day #{self.__day}/{self.__max_days} | {self.__day_len} | {status} |",
-            curses.color_pair(self.COLOR_INFO_BAR)
-        )
-
-        self.__screen.refresh()
+        pass
 
     def run(self):
-        for _ in range(self.__max_days):
-            self.display()
+        self.display()
+
+        while self._day < self._max_days and not self._simulation_complete:
             self.tick()
+            self.display()
 
-            input = self.__screen.getch()
-            if input == ord("q"):
-                break
-            elif input == ord("+"):
-                self.__day_len -= 0.10
-                if self.__day_len < 0.10:
-                    self.__day_len = 0.10
-            elif input == ord("-"):
-                self.__day_len += 0.10
-            elif input == ord("S"):
-                self.__day_len = 1.0
-            elif input == ord("t"):
-                self.__show_trails = False if self.__show_trails else True
+            self._process_input()
 
-            time.sleep(self.__day_len)
+            time.sleep(self._day_len)

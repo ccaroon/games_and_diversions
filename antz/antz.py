@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 import argparse
 import curses
-import random
 
-from antz.simulation import AntzSimulation
+from antz.basic import AntzBasic
+from antz.curses import AntzCurses
 
-def main(stdscr, args):
-    simulation = AntzSimulation(
+
+def curses_mode(stdscr, args):
+    simulation = AntzCurses(
         stdscr,
         count=args.count,
         day_len=args.day_length,
@@ -23,10 +24,24 @@ def main(stdscr, args):
     stdscr.getch()
 
 
+def basic_mode(args):
+    simulation = AntzBasic(
+        count=args.count,
+        day_len=args.day_length,
+        max_days=args.max_days,
+        ant_marker=args.ant,
+        trail_marker=args.trail,
+        camp_marker=args.camp,
+        debug=args.debug
+    )
+    simulation.run()
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Antz - Two Ants, Lost in the Big, Wide World...Searching for one another!"
     )
+    parser.add_argument("--mode", choices=("basic", "curses"), default="curses", required=False, help="User Interface")
     parser.add_argument("--count", "-c", type=int, default=2, required=False, help="Number of Antz")
     # parser.add_argument("--iterations", "-i", type=int, default=250, required=False, help="Number of iterations to run")
     parser.add_argument("--day-length", "-d", type=float, default=0.10, required=False, help="Length of 1 day (iteration)")
@@ -38,4 +53,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    curses.wrapper(main, args)
+    if args.mode == "basic":
+        basic_mode(args)
+    elif args.mode == "curses":
+        curses.wrapper(curses_mode, args)
