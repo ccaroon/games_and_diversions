@@ -2,8 +2,9 @@ import colorama
 
 from rune.base import Base
 from rune.point import Point
+from rune.rvm.rvm import RVM
 
-from scriptum.context import Context
+# from scriptum.context import Context
 from scriptum.scene import Scene
 
 class Realm(Base):
@@ -17,6 +18,7 @@ class Realm(Base):
         super().__init__(f"{path}/realm.yml")
 
         self.__path = path
+        self.__init_realm()
         self.__load_points()
         self.__init_intro()
         self.__init_clocks()
@@ -26,6 +28,11 @@ class Realm(Base):
         for clock in self._data["clocks"]:
             pass
 
+    def __init_realm(self):
+        for cmd in self._data["setup"]:
+            result = RVM.parse(cmd)
+            print(result)
+            input()
 
     def __init_intro(self):
         self.__intro = Scene("Intro")

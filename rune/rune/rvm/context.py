@@ -1,14 +1,15 @@
 import pyparsing as pp
 
-from scriptum.context import Context as ScriptumContext
+from scriptum.context_manager import ContextManager
 
 class Context:
 
     __add = "add" + pp.QuotedString(quote_char='"')("name") + "with" + "icon" + pp.Char(pp.unicode.BMP.printables)("icon")
-    # TODO: one_of
+    __activate = "activate" + pp.QuotedString(quote_char='"')("name")
+
     __COMMANDS = (
         __add,
-        "activate" + pp.Word(pp.alphanums)
+        __activate
     )
 
     @classmethod
@@ -17,16 +18,34 @@ class Context:
 
         for cmd in cls.__COMMANDS:
             try:
-                cmd.parse_string(command)
+                result = cmd.parse_string(command)
                 break
             except pp.exceptions.ParseException as err:
-                pass
+                result = None
+
+        if result == None:
+            raise ValueError(f"context -> Invalid Command: `{command}`")
+
+        return result[0]
 
     @classmethod
     @__add.set_parse_action
     def add(cls, result):
-        ctx = ScriptumContext(result.name, icon=result.icon)
+        ctx = ContextManager.create(result.name, icon=result.icon)
+        return ctx
 
-        # print(result)
-        # print(result.name, result.icon)
-        print(ctx)
+    @classmethod
+    @__activate.set_parse_action
+    def activate(cls, result):
+         ctx = ContextManager.get(result.name)
+         ContextManager.activate(ctx)
+
+
+
+
+
+
+
+
+
+#

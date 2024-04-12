@@ -1,8 +1,8 @@
 ---
 name: Grim Coast
-init:
-  - context -> add "day" with icon ☀️
-  - context -> add "night" with icon 🌑
+setup:
+  - context -> add "day" with icon ☀
+  - context -> add "night" with icon ★
   - context -> activate "day"
 clocks:
   - name: Day/Night

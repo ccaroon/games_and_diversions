@@ -22,10 +22,10 @@ parser.add_argument("realm", type=str)
 parser.add_argument("character", type=str)
 args = parser.parse_args()
 # ------------------------------------------------------------------------------
-import sys
-parser = RVM.get("context")
-parser.parse('add "day" with icon ☀️')
-sys.exit(0)
+# import sys
+# val = RVM.parse('context --> add "day" with icon ☀️')
+# print(val)
+# sys.exit(0)
 
 # ------------------------------------------------------------------------------
 # Realm
