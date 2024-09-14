@@ -19,7 +19,7 @@ parser.add_argument("height", type=int)
 
 # Options
 parser.add_argument("--moves", "-m",
-    type=int, default=50, help="Number of moves")
+    type=int, default=25, help="Number of moves")
 
 parser.add_argument("--delay", "-d",
     type=float, default=0.25, help="Delay between moves")
