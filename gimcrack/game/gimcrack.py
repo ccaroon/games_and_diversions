@@ -1,9 +1,7 @@
-import copy
 import curses
-# import re
 import time
-import random
 
+from .board import Board
 from .gem import Gem
 from .match import Match
 
@@ -41,17 +39,10 @@ class GimCrack:
 
         self.__screen = stdscr
 
-        # Num spaces b/w gems on each row, i.e. horizontal spacing
-        self.__spacing = 1
-
         self.__width = width
         max_width = curses.COLS
         if self.__width == -1:
             self.__width = curses.COLS
-
-        if self.__spacing:
-            self.__width //= self.__spacing
-            max_width //= self.__spacing
 
         self.__height = height
         max_height = curses.LINES - 1
@@ -71,14 +62,9 @@ class GimCrack:
 
         self.__init_gems()
 
-        self.__board0 = self.__create_board()
-        # self.__board1 = self.__create_board()
-        self.__boards = {
-            "active": self.__board0,
-            # "standby": self.__board1
-        }
-
-        self.__init_board(self.__boards["active"])
+        self.__board = Board(
+            self.__screen, self.__height, self.__width, self.EMPTY_GEM)
+        self.__board.populate(list(self.GEMS.values()))
 
 
     def __init_gems(self):
@@ -94,22 +80,7 @@ class GimCrack:
             color_idx += 1
 
 
-    def __create_board(self):
-        board = [[]] * self.__height
-        for row in range(self.__height):
-            board[row] = [self.EMPTY_GEM] * self.__width
-
-        return board
-
-
-    def __init_board(self, board):
-        gems = list(self.GEMS.values())
-
-        for row in range(self.__height):
-            for col in range(self.__width):
-                board[row][col] = random.choice(gems)
-
-
+    # TODO: move to bottom
     def __debug(self, msg, pause=False):
         self.__screen.addstr(0, 0, msg, curses.color_pair(self.COLOR_DEBUG))
         self.__screen.refresh()
@@ -119,22 +90,10 @@ class GimCrack:
 
     def __display(self):
         """ Display ACTIVE board w/ Curses """
-        board = self.__boards["active"]
-        for row in range(self.__height):
-            for col in range(0, self.__width, self.__spacing + 1):
-                gem = board[row][col]
-                # Add Gem
-                self.__screen.addch(row, col, gem.icon, gem.color)
-
-                # Add Spacer Gems, if any
-                for i in range(1, self.__spacing + 1):
-                    col_idx = col + i
-                    if col_idx < self.__width:
-                        self.__screen.addch(row, col_idx,
-                            self.EMPTY_GEM.icon, self.EMPTY_GEM.color
-                    )
+        self.__board.refresh()
 
         # Display Status Line
+        # TODO: move to top
         self.__screen.addstr(
             self.__height, 0,
             f"|[{self.__height}]x[{self.__width}]|Move: {self.__move_count}/{self.__max_moves}|Score: {self.__score}",
@@ -143,27 +102,22 @@ class GimCrack:
         self.__screen.refresh()
 
 
-    # def __update_boards(self):
-    #     if self.__move_count % 2 == 0:
-    #         self.__boards["active"] = self.__board0
-    #         self.__boards["standby"] = self.__board1
-    #     else:
-    #         self.__boards["active"] = self.__board1
-    #         self.__boards["standby"] = self.__board0
-
-
     def __find_match(self):
         """ Search the board for a match """
         match = None
         # bottom to top, left to right
+        # TODO: use board.walk()
         for row in range(self.__height - 1, -1, -1):
             if match:
                 break
 
             for col in range(self.__width):
+                self.__debug(f"Checking [{row},{col}]", True)
                 match = self.__check_match(row, col)
                 if match:
                     break
+
+        self.__debug(str(match), True)
 
         return match
 
@@ -178,13 +132,46 @@ class GimCrack:
         Returns:
             Match instance
         """
-        # ...YOU ARE HERE...
-        return None
+        # ==> YOU ARE HERE <==
+        found = None
+        board = self.__board
+        gem = board.get(row,col)
+
+        # check left
+        # TODO: not working something funky is going on
+        is_match = True
+        direction = -1
+        for count in range(2,3):
+            col_idx = col + (count * direction)
+            if col_idx < 0 or board.get(row,col_idx) != gem:
+                is_match = False
+                break
+
+        if is_match:
+            found = Match((row,col), (row,col + direction), 3)
+
+        # check up
+        # check right
+        # check down
+
+
+        return found
 
 
     def __animate_swap(self, match):
         # -> swap gems to create match
+        board = self.__board
+        r1 = match.gem1[0]
+        c1 = match.gem1[1]
+
+        r2 = match.gem2[0]
+        c2 = match.gem2[1]
+
+        board.set(r1, c1, Gem("A", curses.color_pair(1)))
+        board.set(r2, c2, Gem("B", curses.color_pair(1)))
+
         self.__display()
+        self.__debug(f"A[{r1},{c1}] | B[{r2},{c2}]", True)
         time.sleep(self.__delay)
 
 
@@ -201,6 +188,14 @@ class GimCrack:
 
 
     def __auto_match(self):
+
+        # def blah(row, col):
+        #     self.__board.set(row, col, self.EMPTY_GEM)
+        #     self.__display()
+        #     time.sleep(self.__delay)
+
+        # self.__board.walk(blah)
+
         match = self.__find_match()
         while match:
             if match.gem2:
