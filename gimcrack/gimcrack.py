@@ -14,8 +14,8 @@ parser = argparse.ArgumentParser(
 parser.set_defaults(func=usage, app=parser)
 
 # Required Arguments
-parser.add_argument("width", type=int)
-parser.add_argument("height", type=int)
+parser.add_argument("rows", type=int)
+parser.add_argument("cols", type=int)
 
 # Options
 parser.add_argument("--moves", "-m",
@@ -30,7 +30,7 @@ def main(stdscr, args):
     # Create and Run
     game = GimCrack(
         stdscr,
-        args.width, args.height,
+        args.rows, args.cols,
         moves=args.moves,
         delay=args.delay
     )
