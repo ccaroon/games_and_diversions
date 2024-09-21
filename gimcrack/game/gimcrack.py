@@ -88,7 +88,7 @@ class GimCrack:
 
     # TODO: move to bottom
     def __debug(self, msg, pause=False):
-        self.__screen.addstr(0, 0, msg, curses.color_pair(self.COLOR_DEBUG))
+        self.__screen.addstr(0, 0, str(msg), curses.color_pair(self.COLOR_DEBUG))
         self.__screen.refresh()
         if pause:
             self.__screen.getch()
@@ -123,7 +123,7 @@ class GimCrack:
                 if match:
                     break
 
-        self.__debug(str(match), True)
+        # self.__debug(str(match), True)
 
         return match
 
@@ -145,15 +145,17 @@ class GimCrack:
 
         # check for existing match -- no swap needed
         ## left
-        is_match = True
+        # TODO: extend to as many Gems as possible. Don't assume 4
         direction = -1
+        match = Match((row, col), None, 3, Match.DIRECTION_LEFT)
         for count in range(1,3):
             col_idx = col + (count * direction)
-            self.__debug(f"[{row},{col}] => [{row},{col_idx}]", True)
+            # self.__debug(f"[{row},{col}] => [{row},{col_idx}]", True)
             if col_idx < 0 or board.get(row, col_idx) != gem:
-                is_match = False
+                match = None
                 break
 
+        # TODO: code other direction
 
 
         # check left
@@ -166,90 +168,84 @@ class GimCrack:
         #         is_match = False
         #         break
 
-        if is_match:
-            found = Match((row,col), (row,col + direction), 3)
+        # if is_match:
+
 
         # check up
         # check right
         # check down
 
 
-        return found
+        return match
 
 
     def __animate_swap(self, match):
         # -> swap gems to create match
-        board = self.__board
-        r1 = match.gem1[0]
-        c1 = match.gem1[1]
+        self.__display()
+        time.sleep(self.__delay)
 
-        r2 = match.gem2[0]
-        c2 = match.gem2[1]
 
-        board.set(r1, c1, self.MATCH_GEM)
-        board.set(r2, c2, self.MATCH_GEM)
+    def __animate_show(self, match):
+        # -> show matched gem set
+        locs = match.locations()
+        for loc in locs:
+            self.__board.set(loc[0], loc[1], self.MATCH_GEM)
 
         self.__display()
-        self.__debug(f"A[{r1},{c1}] | B[{r2},{c2}]", True)
         time.sleep(self.__delay)
 
 
     def __animate_clear(self, match):
         # -> clear matched gems
+        locs = match.locations()
+        for loc in locs:
+            self.__board.set(loc[0], loc[1], self.EMPTY_GEM)
+
         self.__display()
         time.sleep(self.__delay)
 
 
-    def __animate_refill(self):
+    def __animate_refill(self,match):
         # -> cascade gems down to fill clears spots
+        # NOTE: Only temporary.
+        # Real code will allow Gems to fall down, then repopulate
+        # at the top
+        # ---- TEMPORARY ---
+        locs = match.locations()
+        for loc in locs:
+            self.__board.set(loc[0], loc[1], random.choice(list(self.GEMS.values())))
+        # --- TEMPORARY ---
+
         self.__display()
         time.sleep(self.__delay)
 
 
     def __auto_match(self):
-
-        # def blah(row, col):
-        #     self.__board.set(row, col, self.EMPTY_GEM)
-        #     self.__display()
-        #     time.sleep(self.__delay)
-
-        # self.__board.walk(blah)
-
         match = self.__find_match()
         while match:
-            if match.gem2:
+            if match.is_swap():
                 # Gems must be swapped to match
                 self.__animate_swap(match)
+                self.__animate_show(match)
+                self.__animate_clear(match)
+            elif match.is_exact():
+                # Gems already match in current positions
+                self.__animate_show(match)
                 self.__animate_clear(match)
             else:
-                # Gems already match in current positions
-                self.__animate_clear(match)
+                raise ValueError("Unknown match type")
 
-            self.__animate_refill()
-            self.__move_count += 1
+            self.__animate_refill(match)
 
             match = self.__find_match()
 
 
     def __auto_play(self):
+        # Give a chance to view the board before changing it.
+        # TODO: Remove later???
+        time.sleep(self.__delay)
 
-        self.__board.set(7,7,self.MATCH_GEM)
-        self.__display()
-
-
-        # for row in range(self.__board.rows):
-        #     for col in range(self.__board.cols):
-        #         self.__board.set(row, col, self.MATCH_GEM)
-        #         self.__display()
-        #         time.sleep(self.__delay)
-
-        # row = random.randint(0, self.__height-1)
-        # col = random.randint(0, self.__width-1)
-        # self.__board.set(row, col, self.MATCH_GEM)
-        # self.__display()
-        # time.sleep(self.__delay)
-        # time.sleep(5)
-        # self.__auto_match()
+        self.__auto_match()
         self.__move_count += 1
 
 
