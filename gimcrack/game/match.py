@@ -2,8 +2,8 @@ from .location import Location
 
 class Match:
 
-    DIRECTION_UP_DN = "up/down"
-    DIRECTION_LT_RT = "left/right"
+    DIRECTION_VERTICAL = "VERTICAL"
+    DIRECTION_HORIZONTAL = "HORIZONTAL"
 
     def __init__(self, loc1:Location, loc2:Location):
         """
@@ -17,17 +17,17 @@ class Match:
         self.__direction = None
         # Same ROW -> Left to Right
         if self.__loc1.row == self.__loc2.row:
-            self.__direction = self.DIRECTION_LT_RT
+            self.__direction = self.DIRECTION_HORIZONTAL
         # Same COL -> Up & Down
         elif self.__loc1.col == self.__loc2.col:
-            self.__direction = self.DIRECTION_UP_DN
+            self.__direction = self.DIRECTION_VERTICAL
         else:
             raise ValueError(f"Unable to calcuate direction: {self.__loc1} to {self.__loc2}")
 
         self.__count = None
-        if self.__direction == self.DIRECTION_LT_RT:
+        if self.__direction == self.DIRECTION_HORIZONTAL:
             self.__count = (self.__loc2.col - self.__loc1.col) + 1
-        elif self.__direction == self.DIRECTION_UP_DN:
+        elif self.__direction == self.DIRECTION_VERTICAL:
             self.__count = (self.__loc2.row - self.__loc1.row) + 1
 
 
@@ -43,12 +43,12 @@ class Match:
         start = self.__loc1
         locations = [start]
 
-        if self.__direction == self.DIRECTION_LT_RT:
+        if self.__direction == self.DIRECTION_HORIZONTAL:
             for cnt in range(1, self.__count):
                 row = start.row
                 col = start.col + cnt
                 locations.append(Location(row, col))
-        elif self.__direction == self.DIRECTION_UP_DN:
+        elif self.__direction == self.DIRECTION_VERTICAL:
             for cnt in range(1, self.__count):
                 row = start.row + cnt
                 col = start.col

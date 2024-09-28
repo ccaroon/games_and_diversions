@@ -142,38 +142,38 @@ class GimCrack:
         """
         board = self.__board
         gem = board.get(row,col)
-
         gem_loc = Location(row, col)
-        start_loc = gem_loc
-        end_loc = gem_loc
+
+        planes = (board.vertical_plane, board.horizontal_plane)
 
         match = None
-
         # EXISTING MATCH -- No Swap Needed
-        # --- Left to Right ---
-        ## --- Part One ---
-        ## Check to see if there are at least 3 gems in a row that match
-        ## ...check from given (row,col) to the LEFT
-        direction = -1 # left
-        curr_loc = gem_loc + (0, direction)
-        while curr_loc.col >= 0 and board.get(curr_loc.row, curr_loc.col) == gem:
-            start_loc = curr_loc
-            curr_loc += (0, direction)
+        for plane in planes:
+            start_loc = gem_loc
+            end_loc = gem_loc
+            # --- Part One ---
+            # Check to see if there are at least 3 consequetive, identical gems
+            # ...in this plane
+            # ...start at `gem_loc` moving in the `dir1` direction
+            curr_loc = gem_loc + plane["dir1"]
+            while curr_loc[plane["coord"]] >= 0 and board.get(curr_loc.row, curr_loc.col) == gem:
+                start_loc = curr_loc
+                curr_loc += plane["dir1"]
 
-        # --- Part Two ---
-        # IF found at least 3 gems in a row that match
-        # ...original gem at gem_loc + at least 2 to the left
-        # Check to see if the match can be extended to the right
-        if start_loc.hdistance(gem_loc) >= 2:
-            direction = 1 # right
-            curr_loc = gem_loc + (0, direction)
-            while curr_loc.col < board.cols and board.get(curr_loc.row, curr_loc.col) == gem:
-                end_loc = curr_loc
-                curr_loc += (0, direction)
+            # --- Part Two ---
+            # IF found at least 3 consequetive, identical gems in this plane
+            # ...gem at `gem_loc` + at least 2 others
+            # Check to see if the match can be extended in the `dir2` direction.
+            if start_loc.distance(gem_loc)[plane["coord"]] >= 2:
+                curr_loc = gem_loc + plane["dir2"]
+                while curr_loc[plane["coord"]] < plane["max"] and board.get(curr_loc.row, curr_loc.col) == gem:
+                    end_loc = curr_loc
+                    curr_loc += plane["dir2"]
 
-            match = Match(start_loc, end_loc)
+                match = Match(start_loc, end_loc)
 
-        # check up / down
+            if match:
+                break
 
         # TODO: SWAP to MATCH
 

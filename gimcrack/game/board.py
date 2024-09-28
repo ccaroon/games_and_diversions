@@ -1,11 +1,9 @@
 import random
 
 from .gem import Gem
-from .location import Location
 
 class Board:
     """ Playing Board """
-
     def __init__(self, screen, rows, cols, fill:Gem):
         self.__rows = rows
         self.__cols = cols
@@ -14,6 +12,20 @@ class Board:
         self.__board = [[]] * self.__rows
         for row in range(self.__rows):
             self.__board[row] = [fill] * self.__cols
+
+        self.__plane_vert = {
+            "coord": 0,
+            "max": self.__rows,
+            # up & down
+            "dir1": (-1, 0), "dir2": (+1, 0)
+        }
+
+        self.__plane_horz = {
+            "coord": 1,
+            "max": self.__cols,
+            # left & right
+            "dir1": (0, -1), "dir2": (0, +1)
+        }
 
 
     @property
@@ -24,6 +36,16 @@ class Board:
     @property
     def cols(self):
         return self.__cols
+
+
+    @property
+    def vertical_plane(self):
+        return self.__plane_vert
+
+
+    @property
+    def horizontal_plane(self):
+        return self.__plane_horz
 
 
     def set(self, row, col, gem:Gem):

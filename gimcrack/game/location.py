@@ -29,16 +29,27 @@ class Location:
         return self.row == other.row and self.col == other.col
 
 
+    def __getitem__(self, idx):
+        value = None
+        if idx == 0:
+            value = self.__row
+        elif idx == 1:
+            value = self.__col
+        else:
+            raise IndexError(f"Index Out of Range: {idx}")
+
+        return value
+
+
     def hdistance(self, other):
-        return self.distance(other)[1]
+        return other.col - self.col
 
 
     def vdistance(self, other):
-        return self.distance(other)[0]
+        return other.row - self.row
 
 
     def distance(self, other) -> tuple:
-        rows = other.row - self.row
-        cols = other.col - self.col
-
+        rows = self.vdistance(other)
+        cols = self.hdistance(other)
         return (rows, cols)
