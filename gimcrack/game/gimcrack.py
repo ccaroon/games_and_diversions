@@ -4,6 +4,7 @@ import random
 
 from .board import Board
 from .gem import Gem
+from .location import Location
 from .match import Match
 
 class GimCrack:
@@ -75,6 +76,7 @@ class GimCrack:
         # Black / Blank / Empty Gem
         self.EMPTY_GEM = Gem(" ", curses.color_pair(0))
         self.MATCH_GEM = Gem("🟏", curses.color_pair(2) | curses.A_BOLD)
+        # self.MATCH_GEM = Gem("܍", curses.color_pair(2) | curses.A_BOLD)
         # self.MATCH_GEM = Gem("🌟", curses.color_pair(0))
 
         # Colored Gems
@@ -138,42 +140,42 @@ class GimCrack:
         Returns:
             Match instance
         """
-        # ==> YOU ARE HERE <==
-        found = None
         board = self.__board
         gem = board.get(row,col)
 
-        # check for existing match -- no swap needed
-        ## left
-        # TODO: extend to as many Gems as possible. Don't assume 4
-        direction = -1
-        match = Match((row, col), None, 3, Match.DIRECTION_LEFT)
-        for count in range(1,3):
-            col_idx = col + (count * direction)
-            # self.__debug(f"[{row},{col}] => [{row},{col_idx}]", True)
-            if col_idx < 0 or board.get(row, col_idx) != gem:
-                match = None
-                break
+        gem_loc = Location(row, col)
+        start_loc = gem_loc
+        end_loc = gem_loc
 
-        # TODO: code other direction
+        match = None
 
+        # EXISTING MATCH -- No Swap Needed
+        # --- Left to Right ---
+        ## --- Part One ---
+        ## Check to see if there are at least 3 gems in a row that match
+        ## ...check from given (row,col) to the LEFT
+        direction = -1 # left
+        curr_loc = gem_loc + (0, direction)
+        while curr_loc.col >= 0 and board.get(curr_loc.row, curr_loc.col) == gem:
+            start_loc = curr_loc
+            curr_loc += (0, direction)
 
-        # check left
-        # TODO: not working something funky is going on
-        # is_match = True
-        # direction = -1
-        # for count in range(2,3):
-        #     col_idx = col + (count * direction)
-        #     if col_idx < 0 or board.get(row,col_idx) != gem:
-        #         is_match = False
-        #         break
+        # --- Part Two ---
+        # IF found at least 3 gems in a row that match
+        # ...original gem at gem_loc + at least 2 to the left
+        # Check to see if the match can be extended to the right
+        if start_loc.hdistance(gem_loc) >= 2:
+            direction = 1 # right
+            curr_loc = gem_loc + (0, direction)
+            while curr_loc.col < board.cols and board.get(curr_loc.row, curr_loc.col) == gem:
+                end_loc = curr_loc
+                curr_loc += (0, direction)
 
-        # if is_match:
+            match = Match(start_loc, end_loc)
 
+        # check up / down
 
-        # check up
-        # check right
-        # check down
+        # TODO: SWAP to MATCH
 
 
         return match
@@ -189,7 +191,7 @@ class GimCrack:
         # -> show matched gem set
         locs = match.locations()
         for loc in locs:
-            self.__board.set(loc[0], loc[1], self.MATCH_GEM)
+            self.__board.set(loc.row, loc.col, self.MATCH_GEM)
 
         self.__display()
         time.sleep(self.__delay)
@@ -199,7 +201,7 @@ class GimCrack:
         # -> clear matched gems
         locs = match.locations()
         for loc in locs:
-            self.__board.set(loc[0], loc[1], self.EMPTY_GEM)
+            self.__board.set(loc.row, loc.col, self.EMPTY_GEM)
 
         self.__display()
         time.sleep(self.__delay)
@@ -213,7 +215,7 @@ class GimCrack:
         # ---- TEMPORARY ---
         locs = match.locations()
         for loc in locs:
-            self.__board.set(loc[0], loc[1], random.choice(list(self.GEMS.values())))
+            self.__board.set(loc.row, loc.col, random.choice(list(self.GEMS.values())))
         # --- TEMPORARY ---
 
         self.__display()
@@ -223,17 +225,18 @@ class GimCrack:
     def __auto_match(self):
         match = self.__find_match()
         while match:
-            if match.is_swap():
-                # Gems must be swapped to match
-                self.__animate_swap(match)
-                self.__animate_show(match)
-                self.__animate_clear(match)
-            elif match.is_exact():
-                # Gems already match in current positions
-                self.__animate_show(match)
-                self.__animate_clear(match)
-            else:
-                raise ValueError("Unknown match type")
+            # self.__debug(f"Match Found: ({match})", True)
+            # if match.is_swap():
+            #     # Gems must be swapped to match
+            #     self.__animate_swap(match)
+            #     self.__animate_show(match)
+            #     self.__animate_clear(match)
+            # elif match.is_exact():
+            # Gems already match in current positions
+            self.__animate_show(match)
+            self.__animate_clear(match)
+            # else:
+            #     raise ValueError("Unknown match type")
 
             self.__animate_refill(match)
 

@@ -1,6 +1,7 @@
 import random
 
 from .gem import Gem
+from .location import Location
 
 class Board:
     """ Playing Board """

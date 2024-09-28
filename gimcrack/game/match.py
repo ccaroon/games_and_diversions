@@ -1,57 +1,58 @@
+from .location import Location
+
 class Match:
 
-    DIRECTION_UP = 1
-    DIRECTION_DN = 2
-    DIRECTION_LEFT = 3
-    DIRECTION_RIGHT = 4
+    DIRECTION_UP_DN = "up/down"
+    DIRECTION_LT_RT = "left/right"
 
-    def __init__(self, pos1:tuple, pos2:tuple, count, direction):
+    def __init__(self, loc1:Location, loc2:Location):
         """
-        A match of `count` gems starting at `pos1` and moving in `direction`
+        A Gem Match from loc1 to loc2.
 
-        If `pos2` is None, then no swap is necessary to make the match, else
-        a match is made by swapping the Gem at `pos1` with the Gem at `pos2`.
-
-        `pos1` & `pos2` are tuple(row,col)
-
-        Workflow:
-            1. Swap Gems at `pos1` and `pos2`
-            2. Now forms a match of `count` Gems moving in the given `direction`
+        Direction of match and number of gems forming the match are calculated.
         """
-        self.__pos1 = pos1
-        self.__pos2 = pos2
-        self.__count = count
-        self.__direction = direction
+        self.__loc1 = loc1
+        self.__loc2 = loc2
+
+        self.__direction = None
+        # Same ROW -> Left to Right
+        if self.__loc1.row == self.__loc2.row:
+            self.__direction = self.DIRECTION_LT_RT
+        # Same COL -> Up & Down
+        elif self.__loc1.col == self.__loc2.col:
+            self.__direction = self.DIRECTION_UP_DN
+        else:
+            raise ValueError(f"Unable to calcuate direction: {self.__loc1} to {self.__loc2}")
+
+        self.__count = None
+        if self.__direction == self.DIRECTION_LT_RT:
+            self.__count = (self.__loc2.col - self.__loc1.col) + 1
+        elif self.__direction == self.DIRECTION_UP_DN:
+            self.__count = (self.__loc2.row - self.__loc1.row) + 1
 
 
     def __str__(self):
-        return f"Match({self.__pos1}, {self.__pos2}, {self.__count}, {self.__direction})"
-
-
-    def is_exact(self):
-        """ Is Exact Match. No Swapping Needed """
-        return self.__pos1 is not None and self.__pos2 is None
-
-
-    def is_swap(self):
-        """ Match only formed by swapping two Gems """
-        return self.__pos1 is not None and self.__pos2 is not None
+        return f"Match({self.__loc1}, {self.__loc2}, {self.__count}, {self.__direction})"
 
 
     def locations(self) -> list:
         """
-        Find all the locations(row, col) starting at `pos1` and moving in
-        `direction` for a `count` places.
+        Find all the locations(row, col) starting at `loc1` and moving in
+        `direction` for `count` places.
         """
-        start = self.__pos1
+        start = self.__loc1
         locations = [start]
 
-        # TODO: code other directions
-        if self.__direction == self.DIRECTION_LEFT:
+        if self.__direction == self.DIRECTION_LT_RT:
             for cnt in range(1, self.__count):
-                row = start[0]
-                col = start[1] - cnt
-                locations.append((row, col))
+                row = start.row
+                col = start.col + cnt
+                locations.append(Location(row, col))
+        elif self.__direction == self.DIRECTION_UP_DN:
+            for cnt in range(1, self.__count):
+                row = start.row + cnt
+                col = start.col
+                locations.append(Location(row, col))
 
 
         return locations
