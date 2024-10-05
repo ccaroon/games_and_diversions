@@ -89,8 +89,8 @@ class GimCrack:
 
 
     # TODO: move to bottom
-    def __debug(self, msg, pause=False):
-        self.__screen.addstr(0, 0, str(msg), curses.color_pair(self.COLOR_DEBUG))
+    def __debug(self, msg, row=0, col=0, pause=False):
+        self.__screen.addstr(row, col, str(msg), curses.color_pair(self.COLOR_DEBUG))
         self.__screen.refresh()
         if pause:
             self.__screen.getch()
@@ -217,16 +217,27 @@ class GimCrack:
         time.sleep(self.__delay)
 
 
-    def __animate_refill(self,match):
-        # -> cascade gems down to fill clears spots
-        # NOTE: Only temporary.
-        # Real code will allow Gems to fall down, then repopulate
-        # at the top
-        # ---- TEMPORARY ---
-        locs = match.locations()
-        for loc in locs:
-            self.__board.set(loc.row, loc.col, random.choice(list(self.GEMS.values())))
-        # --- TEMPORARY ---
+    def __animate_refill(self, match):
+        # Cascade gems down to fill cleared spaces
+        for loc in match.locations():
+            start = Location(0, loc.col)
+            end = loc
+            self.__board.shift_down(start, end)
+
+        # self.__display()
+        # time.sleep(self.__delay)
+
+        # refill cleared spaces
+        gems = list(self.GEMS.values())
+        for idx in range(match.count):
+            if match.direction == Match.HORIZONTAL:
+                row = 0
+                col = match.start.col + idx
+            elif match.direction == Match.VERTICAL:
+                row = idx
+                col = match.start.col
+
+            self.__board.set(row, col, random.choice(gems))
 
         self.__display()
         time.sleep(self.__delay)
@@ -235,7 +246,9 @@ class GimCrack:
     def __auto_match(self):
         match = self.__find_match()
         while match:
-            self.__debug(f"{match}", True)
+            # TODO: remove
+            # self.__debug(f"{match}", True)
+
             self.__animate_swap(match)
             self.__animate_show(match)
             self.__animate_clear(match)

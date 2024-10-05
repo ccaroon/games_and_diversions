@@ -17,6 +17,7 @@ class Board:
         self.__rows = rows
         self.__cols = cols
         self.__screen = screen
+        self.__fill_gem = fill
 
         self.__board = [[]] * self.__rows
         for row in range(self.__rows):
@@ -98,6 +99,19 @@ class Board:
         for row in range(self.__rows):
             for col in range(self.__cols):
                 self.__board[row][col] = random.choice(values)
+
+
+    def shift_down(self, start, end):
+        """ Shift a Column Down """
+        cursor = end
+        while cursor != start:
+            above = cursor + (-1, 0)
+            gem = self.get(above.row, above.col)
+            self.set(cursor.row, cursor.col, gem)
+            cursor += (-1, 0)
+
+        # fill spaces at top with EMPY
+        self.set(start.row, start.col, self.__fill_gem)
 
 
     def refresh(self):
