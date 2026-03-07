@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 )
 
@@ -37,12 +38,19 @@ func digitalRoot(number int) int {
 	return dRoot
 }
 
+func printUsage() {
+	fmt.Printf("Usage: %s <integer>\n", os.Args[0])
+}
+
 func main() {
-	// fmt.Println(digitalRoot(7))
-	// fmt.Println(digitalRoot(1234567890))
-
-	for number := range 1_000 {
-		fmt.Printf("%d) %d\n", number, digitalRoot(number))
+	if len(os.Args) != 2 {
+		printUsage()
+	} else {
+		number, err := strconv.Atoi(os.Args[1])
+		if err != nil {
+			fmt.Printf("Invalid Number: '%s'\n", os.Args[1])
+		} else {
+			fmt.Printf("The Digital Root of [%d] -> [%d]\n", number, digitalRoot(number))
+		}
 	}
-
 }
