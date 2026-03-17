@@ -179,9 +179,9 @@ func (gol *GameOfLife) computeNextGen() {
 	gol.activeBoard, gol.bufferBoard = gol.bufferBoard, gol.activeBoard
 }
 
-func (gol *GameOfLife) updateStatusLine(gen int) {
+func (gol *GameOfLife) updateStatusLine(msg string) {
 	gol.screen.ColorOn(colorInfo)
-	gol.screen.MovePrintf(gol.height-1, 0, "Game of Life | Gen #%d/%d", gen+1, gol.maxGenerations)
+	gol.screen.MovePrintf(gol.height-1, 0, "%s", msg)
 	gol.screen.ColorOff(colorInfo)
 	gol.screen.Refresh()
 }
@@ -191,10 +191,12 @@ func (gol *GameOfLife) Run() {
 		gol.display()
 		gol.computeNextGen()
 
-		gol.updateStatusLine(gen)
+		msg := fmt.Sprintf("Game of Life | Gen #%d/%d", gen+1, gol.maxGenerations)
+		gol.updateStatusLine(msg)
 
 		time.Sleep(time.Millisecond * time.Duration(gol.delay))
 	}
+	gol.updateStatusLine("--Press Any Key to Exit--")
 	gol.screen.GetChar()
 }
 
