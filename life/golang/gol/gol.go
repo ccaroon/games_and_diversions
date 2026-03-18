@@ -28,8 +28,8 @@ type gameBoard [][]rune
 type GameOfLife struct {
 	alive          rune
 	dead           rune
-	maxGenerations int
-	delay          int64
+	maxGenerations int16
+	delay          int16
 	wrapEdges      bool
 	board1         gameBoard
 	board2         gameBoard
@@ -40,14 +40,14 @@ type GameOfLife struct {
 	screen         *gc.Window
 }
 
-func New(screen *gc.Window) *GameOfLife {
+func New(screen *gc.Window, alive, dead rune, maxGens int16, delay int16) *GameOfLife {
 	height, width := screen.MaxYX()
 
 	gol := GameOfLife{
-		alive:          rune('*'),
-		dead:           rune(' '),
-		maxGenerations: 100,
-		delay:          250,
+		alive:          alive,
+		dead:           dead,
+		maxGenerations: maxGens,
+		delay:          delay,
 		wrapEdges:      true,
 		width:          width,
 		height:         height,
@@ -179,7 +179,12 @@ func (gol *GameOfLife) computeNextGen() {
 	gol.activeBoard, gol.bufferBoard = gol.bufferBoard, gol.activeBoard
 }
 
-func (gol *GameOfLife) updateStatusLine(msg string) {
+func (gol *GameOfLife) updateStatusLine(msg string, clear bool) {
+	if clear == true {
+		gol.screen.Move(gol.height-1, 0)
+		gol.screen.ClearToEOL()
+	}
+
 	gol.screen.ColorOn(colorInfo)
 	gol.screen.MovePrintf(gol.height-1, 0, "%s", msg)
 	gol.screen.ColorOff(colorInfo)
@@ -192,11 +197,11 @@ func (gol *GameOfLife) Run() {
 		gol.computeNextGen()
 
 		msg := fmt.Sprintf("Game of Life | Gen #%d/%d", gen+1, gol.maxGenerations)
-		gol.updateStatusLine(msg)
+		gol.updateStatusLine(msg, false)
 
 		time.Sleep(time.Millisecond * time.Duration(gol.delay))
 	}
-	gol.updateStatusLine("--Press Any Key to Exit--")
+	gol.updateStatusLine("--Press Any Key to Exit--", true)
 	gol.screen.GetChar()
 }
 

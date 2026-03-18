@@ -1,13 +1,16 @@
 package main
 
 import (
+	"fmt"
 	"game_of_life/gol"
 	"log"
+	"os"
 
 	gc "github.com/rthornton128/goncurses"
+	"github.com/spf13/cobra"
 )
 
-func curses() {
+func gameOfLife(alive, dead rune, maxGens int16, delay int16) {
 	stdscr, err := gc.Init()
 	if err != nil {
 		log.Fatal("init", err)
@@ -25,48 +28,33 @@ func curses() {
 	gc.Raw(true)   // turn on raw "uncooked" input
 	gc.Echo(false) // turn echoing of typed characters off
 	gc.Cursor(0)   // hide cursor
-	// stdscr.Keypad(true)   // allow keypad input
 
-	height, width := stdscr.MaxYX()
-
-	colorIdx := int16(1)
-	stdscr.ColorOn(colorIdx)
-	stdscr.Printf("W[%d] | H[%d]\n", width, height)
-	stdscr.Println("Hello, World!")
-	stdscr.ColorOff(colorIdx)
-	stdscr.Refresh()
-
-	// if ch := stdscr.GetChar(); ch == gc.KEY_F2 {
-	// 	stdscr.Print("The F2 key was pressed.")
-	// } else {
-	// 	stdscr.Print("The key pressed is: ")
-	// 	stdscr.AttrOn(gc.A_BOLD)
-	// 	stdscr.AddChar(gc.Char(ch))
-	// 	stdscr.AttrOff(gc.A_BOLD)
-	// }
-	// stdscr.Refresh()
-	stdscr.GetChar()
+	gol := gol.New(stdscr, alive, dead, maxGens, delay)
+	gol.Run()
 }
 
 func main() {
-	stdscr, err := gc.Init()
-	if err != nil {
-		log.Fatal("init", err)
+	var delay int16
+	var maxGens int16
+	var alive string
+	var dead string
+
+	rootCmd := &cobra.Command{
+		Use:   "game_of_life",
+		Short: "Conway's Game of Life",
+		// Args:  cobra.ExactArgs(2),
+		Run: func(cmd *cobra.Command, args []string) {
+			gameOfLife(rune(alive[0]), rune(dead[0]), maxGens, delay)
+		},
 	}
-	defer gc.End()
+	rootCmd.Flags().Int16VarP(&delay, "delay", "D", 250, "Delay Between Generations")
+	rootCmd.Flags().Int16VarP(&maxGens, "gens", "g", 100, "Max Generations to Simulate")
+	rootCmd.Flags().StringVarP(&alive, "alive", "a", "*", "Symbol for Live Cells")
+	rootCmd.Flags().StringVarP(&dead, "dead", "d", " ", "Symbol for Dead Cells")
 
-	if !gc.HasColors() {
-		log.Fatal("Colors not supported!")
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
 
-	if err := gc.StartColor(); err != nil {
-		log.Fatal(err)
-	}
-
-	gc.Raw(true)   // turn on raw "uncooked" input
-	gc.Echo(false) // turn echoing of typed characters off
-	gc.Cursor(0)   // hide cursor
-
-	gol := gol.New(stdscr)
-	gol.Run()
 }
