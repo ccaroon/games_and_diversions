@@ -1,8 +1,11 @@
 package gol
 
 import (
+	"bufio"
 	"fmt"
 	"math/rand"
+	"os"
+	"slices"
 	"time"
 
 	gc "github.com/rthornton128/goncurses"
@@ -40,7 +43,7 @@ type GameOfLife struct {
 	screen         *gc.Window
 }
 
-func New(screen *gc.Window, alive, dead rune, maxGens int16, delay int16) *GameOfLife {
+func New(screen *gc.Window, alive, dead rune, patternFile string, maxGens int16, delay int16) *GameOfLife {
 	height, width := screen.MaxYX()
 
 	gol := GameOfLife{
@@ -55,7 +58,12 @@ func New(screen *gc.Window, alive, dead rune, maxGens int16, delay int16) *GameO
 	}
 
 	gol.initBoards()
-	gol.randomizeBoard()
+
+	if patternFile != "" {
+		gol.loadPattern(patternFile)
+	} else {
+		gol.randomizeBoard()
+	}
 
 	gc.InitPair(colorCell, gc.C_GREEN, gc.C_BLACK)
 	gc.InitPair(colorInfo, gc.C_BLACK, gc.C_GREEN)
@@ -68,14 +76,14 @@ func (gol *GameOfLife) initBoards() {
 	// Board 1
 	gol.board1 = make(gameBoard, gol.height)
 	for ridx := range gol.height {
-		gol.board1[ridx] = make([]rune, gol.width)
+		gol.board1[ridx] = slices.Repeat([]rune{gol.dead}, gol.width)
 	}
 	gol.activeBoard = &gol.board1
 
 	// Board 2
 	gol.board2 = make(gameBoard, gol.height)
 	for ridx := range gol.height {
-		gol.board2[ridx] = make([]rune, gol.width)
+		gol.board2[ridx] = slices.Repeat([]rune{gol.dead}, gol.width)
 	}
 	gol.bufferBoard = &gol.board2
 
@@ -84,12 +92,48 @@ func (gol *GameOfLife) initBoards() {
 func (gol *GameOfLife) randomizeBoard() {
 	board := *gol.activeBoard
 
-	for cidx := range gol.width {
-		for ridx := range gol.height {
+	for ridx := range gol.height {
+		for cidx := range gol.width {
 			if rand.Intn(100) <= 50 {
 				board[ridx][cidx] = gol.alive
 			} else {
 				board[ridx][cidx] = gol.dead
+			}
+		}
+	}
+}
+
+func (gol *GameOfLife) loadPattern(fileName string) {
+	fptr, err := os.Open(fileName)
+	if err != nil {
+		panic(err)
+	}
+	defer fptr.Close()
+
+	var pattern []string
+	scanner := bufio.NewScanner(fptr)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if line[0] != byte('#') {
+			pattern = append(pattern, line)
+		}
+	}
+
+	width := len(pattern[0])
+	height := len(pattern)
+	startRow := int(gol.height/2 - height/2)
+	startCol := int(gol.width/2 - width/2)
+
+	// fmt.Printf("[%dx%d] | (%d,%d)\n", width, height, startRow, startCol)
+	// os.Exit(1)
+
+	board := *gol.activeBoard
+	for ridx := range height {
+		for cidx := range width {
+			if pattern[ridx][cidx] == byte('1') {
+				board[startRow+ridx][startCol+cidx] = gol.alive
+			} else {
+				board[startRow+ridx][startCol+cidx] = gol.dead
 			}
 		}
 	}
@@ -196,7 +240,7 @@ func (gol *GameOfLife) Run() {
 		gol.display()
 		gol.computeNextGen()
 
-		msg := fmt.Sprintf("Game of Life | Gen #%d/%d", gen+1, gol.maxGenerations)
+		msg := fmt.Sprintf("Game of Life (%dx%d) | Gen #%d/%d", gol.width, gol.height, gen+1, gol.maxGenerations)
 		gol.updateStatusLine(msg, false)
 
 		time.Sleep(time.Millisecond * time.Duration(gol.delay))
